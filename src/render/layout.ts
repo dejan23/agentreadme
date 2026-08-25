@@ -207,7 +207,7 @@ ${announce ? `<div class="announce">${announce}</div>` : ""}
 <main class="wrap">${body}</main>
 <footer><div class="wrap">
   <p>Every public repository is marked against the same scheme. Nothing is cloned, nothing is executed, and private repositories cannot be marked.</p>
-  <p><a href="/about">Marking scheme</a> · <a href="/leaderboard">Class list</a> · <a href="https://github.com/agentreadme">Source</a></p>
+  <p><a href="/about">Marking scheme</a> · <a href="/leaderboard">Class list</a> · <a href="https://github.com/agentreadme">Source</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a></p>
   <p style="margin-top:14px">Built by <a href="https://x.com/dejansto_" rel="me">@dejansto_</a></p>
 </div></footer>
 <script>${COUNT_JS}${extraJs ?? ""}</script>
