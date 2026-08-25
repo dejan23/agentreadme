@@ -58,7 +58,7 @@ p{margin:0 0 1em}
 .brand{font-weight:800;font-size:20px;letter-spacing:-.035em;text-decoration:none}
 .brand i{font-style:normal;color:var(--acc)}
 .top nav{margin-left:auto;display:flex;flex-wrap:wrap;gap:10px 20px}
-.top nav a{font-size:15px;color:var(--ink-2);text-decoration:none;font-weight:500}
+.top nav a{font-size:15px;color:var(--ink-2);text-decoration:none;font-weight:500;white-space:nowrap}
 .top nav a:hover{color:var(--acc-t)}
 .top nav a.src{color:var(--ink);font-weight:600}
 .top nav a.src::after{content:"↗";font-size:11px;margin-left:3px;color:var(--ink-3)}
@@ -218,8 +218,14 @@ footer p{margin:0 0 .6em;max-width:74ch;margin-left:auto;margin-right:auto}
 @media (max-width:640px){
   .wrap{padding:0 20px}
   .top .inner{padding:14px 20px;gap:16px}
-  .top nav{gap:8px 16px;width:100%;margin-left:0}
-  .top nav a{font-size:14px}
+  .top .inner{gap:12px}
+  .top nav{gap:10px 18px;width:100%;margin-left:0}
+  .top nav a{font-size:14.5px}
+  /* Stat bands read as a sparse column when left aligned on a narrow screen. */
+  .band .nums{gap:26px;text-align:center}
+  .band .k{margin-left:auto;margin-right:auto}
+  .band .kicker{text-align:center}
+  .band>div>p:last-child{text-align:center}
   section{padding:40px 0}
   .search{flex-direction:column}
   /* Keep the full-bleed padding, or the band's text runs into the screen edge. */
