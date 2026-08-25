@@ -121,6 +121,44 @@ ${
     : ""
 }
 
+<section class="two">
+  <div>
+    <h2>Private repo? Run it <i>locally</i>.</h2>
+    <p class="lede" style="margin:16px 0 18px">This site cannot read private repositories and never
+      will. The same rubric runs on your machine instead.</p>
+    <p style="color:var(--ink-2);font-size:16.5px">Nothing is uploaded. No account, no token, no
+      network call at all. It works on private repos, monorepos, uncommitted work, and code that was
+      never pushed anywhere.</p>
+    <p style="color:var(--ink-2);font-size:16.5px">It grades what git tracks, so a local run and this
+      site agree on the same repository.</p>
+  </div>
+  <div>
+    <div class="term">
+      <div class="bar">
+        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <span class="name">bash \u2014 ~/your-private-repo</span>
+      </div>
+      <div class="body"><pre><span class="prompt">$</span> <span class="cmd">npx agentreadme</span>
+
+  acme/internal-api   <b>54/100  C-</b>
+
+  Instructions       <b>\u2591\u2591\u2591\u2591\u2591\u2591\u2591\u2591\u2591\u2591\u2591\u2591</b>    0/27  F
+  Setup              \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2591\u2591\u2591\u2591   14/20  B+
+  Verification loop  \u2588\u2588\u2588\u2588\u2588\u2588\u2591\u2591\u2591\u2591\u2591\u2591   12/25  C
+  Context economy    \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2591\u2591   17/20  A
+  Navigability       \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2591\u2591\u2591\u2591    5/7   B+
+
+  <s>Fix these first</s>
+  <b>1.</b> Agent instruction file
+  <b>2.</b> Test command is discoverable
+
+<span class="prompt">$</span> <span class="cursor"></span></pre></div>
+    </div>
+    <p class="note" style="margin-top:14px"><code>--write-agents</code> drafts the file for you.
+      <code>--min 70</code> fails a build below a score.</p>
+  </div>
+</section>
+
 <section class="center">
   <h2>Try it on the repo you have <i>open right now</i>.</h2>
   <p class="lede">Two API calls. Nothing cloned, nothing executed, no account.

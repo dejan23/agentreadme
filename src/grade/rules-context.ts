@@ -1,6 +1,6 @@
 import type { Category, Check, RepoSnapshot } from "./types";
 import { tally } from "./tally";
-import { ARTIFACT_DIRS, blobs, file, has, isSource } from "./detect";
+import { ARTIFACT_DIRS, blobs, file, has, isLocalSnapshot, isSource } from "./detect";
 
 const KB = 1024;
 
@@ -124,18 +124,35 @@ export function gradeNavigation(s: RepoSnapshot): Category {
   });
 
   // --- Repo metadata: description + topics ---
-  const hasDesc = !!s.meta.description && s.meta.description.length > 10;
-  const hasTopics = s.meta.topics.length >= 2;
-  const metaScore = (hasDesc ? 2 : 0) + (hasTopics ? 1 : 0);
-  checks.push({
-    id: "repo-meta",
-    label: "Repository description",
-    score: metaScore,
-    max: 3,
-    severity: metaScore >= 2 ? undefined : "polish",
-    verdict: hasDesc ? "The repo describes itself in one line." : "No repository description set.",
-    fix: hasDesc && hasTopics ? undefined : "Set the description and a few topics. It's the first context anything gets, and it takes ten seconds.",
-  });
+  // A description and topics live on GitHub, not in the repository. Grading a
+  // local checkout against them would dock every private project for something
+  // it cannot have, so they are not applicable off-platform.
+  if (isLocalSnapshot(s)) {
+    checks.push({
+      id: "repo-meta",
+      label: "Repository description",
+      score: 0,
+      max: 3,
+      na: true,
+      verdict: "Not applicable — a description and topics belong to the host, not the checkout.",
+    });
+  } else {
+    const hasDesc = !!s.meta.description && s.meta.description.length > 10;
+    const hasTopics = s.meta.topics.length >= 2;
+    const metaScore = (hasDesc ? 2 : 0) + (hasTopics ? 1 : 0);
+    checks.push({
+      id: "repo-meta",
+      label: "Repository description",
+      score: metaScore,
+      max: 3,
+      severity: metaScore >= 2 ? undefined : "polish",
+      verdict: hasDesc ? "The repo describes itself in one line." : "No repository description set.",
+      fix:
+        hasDesc && hasTopics
+          ? undefined
+          : "Set the description and a few topics. It's the first context anything gets, and it takes ten seconds.",
+    });
+  }
 
   // --- License ---
   const lic = s.meta.license && s.meta.license !== "NOASSERTION";

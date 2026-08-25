@@ -258,3 +258,12 @@ export function projectShape(s: RepoSnapshot): ProjectShape {
   }
   return { isSoftware: true, reason: `${sources.length} source files`, sourceCount: sources.length, docRatio };
 }
+
+/**
+ * True when this snapshot was built from a directory rather than the GitHub
+ * API. Local runs cannot know stars, description, or topics, so checks that
+ * depend on them are marked not applicable instead of scored zero.
+ */
+export function isLocalSnapshot(s: RepoSnapshot): boolean {
+  return s.meta.stars === -1 && s.meta.defaultBranch === "local";
+}

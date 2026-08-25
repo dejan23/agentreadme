@@ -22,6 +22,8 @@ bun run typecheck                    # tsc --noEmit, must pass before commit
 bun run test                         # vitest
 bun run scripts/probe.ts owner/repo  # grade one repo, print the scorecard
 bun run scripts/seed.ts --limit 1000 # crawl top repos, write seed/seed.sql
+bun run cli .                        # the CLI against this repo
+bun run build:cli                    # bundle dist/cli.js for npm
 npx wrangler deploy                  # production, from this machine
 ```
 
@@ -38,6 +40,7 @@ know before and after.
 src/grade/     the rubric. rules-*.ts hold the checks, detect.ts the signals
 src/render/    server-rendered HTML. layout.ts owns the design system
 src/github.ts  GitHub client. Two API calls per repo, contents come from the CDN
+src/local/     the npx CLI: a filesystem snapshot plus a terminal renderer
 src/db.ts      D1 queries and the row shape
 scripts/       probe (one repo) and seed (the crawl)
 migrations/    D1 schema
@@ -46,7 +49,13 @@ migrations/    D1 schema
 ## Conventions
 
 - **Rules are pure over `RepoSnapshot`.** A rule reads the snapshot and returns a
-  `Check`. It never fetches. That is what keeps them testable.
+  `Check`. It never fetches. That is what keeps them testable, and it is why the
+  same rules run unchanged in the Worker and in the local CLI.
+- **Nothing under `src/grade/` may import from `src/local/`.** The Worker bundle
+  must never pull in filesystem code. The local marker lives in `detect.ts` for
+  that reason.
+- **A local run and a hosted run must agree** on the same repository. The CLI
+  grades what `git ls-files` reports, which is what GitHub would return.
 - **Never rename a check `id`.** They appear in URLs and anchors.
 - **Not-applicable checks set `na: true`** and are excluded from score and max
   alike, so a library is not punished for having no environment config.

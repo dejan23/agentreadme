@@ -30,6 +30,32 @@ $ curl agentreadme.com/honojs/hono.txt
 ✓ Navigability             10/10   A+
 ```
 
+## Private repos
+
+The hosted site cannot read private repositories, and it never will. Run the
+rubric locally instead:
+
+```
+npx agentreadme
+```
+
+Same checks, same scoring, in your terminal. **Nothing is uploaded. No account,
+no token, no network call at all.** It works on private repos, monorepos,
+uncommitted work, and code that was never pushed anywhere.
+
+```
+npx agentreadme                 grade the current directory
+npx agentreadme --verbose       every check, not just the categories
+npx agentreadme --write-agents  draft an AGENTS.md from what is here
+npx agentreadme --min 70        exit non-zero below 70, for CI
+npx agentreadme --json          the full report as JSON
+```
+
+It grades what git tracks, so a local run and the hosted one agree on the same
+repository. Stars, description, and topics belong to GitHub rather than to a
+checkout, so those checks are marked not applicable off-platform instead of
+costing you marks you cannot earn.
+
 ## What it measures
 
 | Category | Marks | The question |
