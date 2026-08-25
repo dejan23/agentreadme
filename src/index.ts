@@ -1,13 +1,14 @@
 import { Hono } from "hono";
 import { GitHubError, snapshot } from "./github";
 import { grade } from "./grade";
+import type { Report } from "./grade/types";
 import { errorBadge, gradeBadge } from "./render/badge";
 import { errorPage, reportPage } from "./render/page";
 import { reportText } from "./render/text";
 import { aboutPage, agentsMdPage, homePage, notFoundPage } from "./render/static-pages";
 import { leaderboardPage } from "./render/leaderboard";
 import { privacyPage, termsPage } from "./render/legal";
-import { type Sort, languageMedians, languages, leaderboard, leaderboardStats, saveReport } from "./db";
+import { type Sort, languageMedians, languages, leaderboard, leaderboardStats, saveReport, storedReport } from "./db";
 
 export interface Env {
   GITHUB_TOKEN?: string;
@@ -22,7 +23,11 @@ const RESERVED = new Set([
   "sitemap.xml", "what-is-agents-md", "api", "static", "_", "assets", "privacy", "terms",
 ]);
 
-const NAME = /^[A-Za-z0-9_.-]{1,100}$/;
+// GitHub's own rules: an owner is alphanumeric with single hyphens, a repo may
+// also carry dots and underscores. Keeping these tight stops "a/b/c/d" and
+// "../../etc/passwd" from ever reaching the API.
+const OWNER = /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})$/;
+const REPO = /^(?!\.\.?$)[A-Za-z0-9._-]{1,100}$/;
 
 /** Accepts "owner/repo", a full GitHub URL, or a git remote. */
 export function parseRepo(input: string): { owner: string; repo: string } | null {
@@ -30,9 +35,10 @@ export function parseRepo(input: string): { owner: string; repo: string } | null
   if (!s) return null;
   s = s.replace(/^git@github\.com:/, "").replace(/^https?:\/\/(www\.)?github\.com\//i, "");
   s = s.replace(/\.git$/, "").replace(/^\/+|\/+$/g, "");
-  const [owner, repo] = s.split("/");
-  if (!owner || !repo) return null;
-  if (!NAME.test(owner) || !NAME.test(repo)) return null;
+  const parts = s.split("/");
+  if (parts.length !== 2) return null;
+  const [owner, repo] = parts;
+  if (!OWNER.test(owner) || !REPO.test(repo)) return null;
   if (RESERVED.has(owner.toLowerCase())) return null;
   return { owner, repo };
 }
@@ -57,6 +63,17 @@ async function cached(
   }
   return res;
 }
+
+/**
+ * How long a stored report is served without asking GitHub again.
+ *
+ * Every distinct repo we grade spends from one 5,000/hour token shared by every
+ * visitor, so a loop over random repo names could take grading down for
+ * everyone. Serving from D1 makes a repeat request cost nothing, and the stale
+ * fallback below turns an exhausted token into a slightly old page rather than
+ * an error.
+ */
+const FRESH_MS = 24 * 60 * 60 * 1000;
 
 const HTML = { "Content-Type": "text/html; charset=utf-8" };
 const SVG = {
@@ -125,10 +142,19 @@ app.get("/badge/:owner/:repo", async (c) => {
   if (!parsed) return c.body(errorBadge("invalid"), 200, SVG);
 
   return cached(c, 1800, async () => {
+    const db = c.env.DB;
+    // Badges are the highest-volume endpoint once READMEs adopt them, so they
+    // lean hardest on the stored copy.
+    const stored = db ? await storedReport(db, parsed.owner, parsed.repo).catch(() => null) : null;
+    if (stored && stored.ageMs < FRESH_MS) {
+      return new Response(gradeBadge(stored.report.score, stored.report.grade), { status: 200, headers: SVG });
+    }
     try {
       const r = grade(await snapshot(parsed.owner, parsed.repo, c.env.GITHUB_TOKEN));
+      if (db) c.executionCtx.waitUntil(saveReport(db, r).catch(() => {}));
       return new Response(gradeBadge(r.score, r.grade), { status: 200, headers: SVG });
     } catch {
+      if (stored) return new Response(gradeBadge(stored.report.score, stored.report.grade), { status: 200, headers: SVG });
       return new Response(errorBadge(), { status: 200, headers: SVG });
     }
   });
@@ -142,27 +168,39 @@ app.get("/:owner/:repo", async (c) => {
   const parsed = parseRepo(`${c.req.param("owner")}/${wantsText ? raw.slice(0, -4) : raw}`);
   if (!parsed) return wantsText ? c.text("Not a GitHub repository.\n", 400) : c.html(notFoundPage(), 404);
 
-  return cached(c, 21600, async () => {
-    try {
-      const report = grade(await snapshot(parsed.owner, parsed.repo, c.env.GITHUB_TOKEN));
-      if (wantsText) {
-        return new Response(reportText(report), {
+  const render = (report: Report) =>
+    wantsText
+      ? new Response(reportText(report), {
           status: 200,
           headers: { "Content-Type": "text/plain; charset=utf-8" },
-        });
-      }
-      // The leaderboard grows from real traffic, not just the seed crawl.
-      if (c.env.DB) {
+        })
+      : new Response(reportPage(report), { status: 200, headers: HTML });
+
+  return cached(c, 21600, async () => {
+    const db = c.env.DB;
+
+    // 1. A recent stored report costs no GitHub call at all.
+    const stored = db ? await storedReport(db, parsed.owner, parsed.repo).catch(() => null) : null;
+    if (stored && stored.ageMs < FRESH_MS) return render(stored.report);
+
+    // 2. Otherwise mark it live.
+    try {
+      const report = grade(await snapshot(parsed.owner, parsed.repo, c.env.GITHUB_TOKEN));
+      if (db) {
         c.executionCtx.waitUntil(
-          saveReport(c.env.DB, report).catch(() => {
+          saveReport(db, report).catch(() => {
             /* a failed write must never break the page */
           }),
         );
       }
-      return new Response(reportPage(report), { status: 200, headers: HTML });
+      return render(report);
     } catch (e) {
       const err = e instanceof GitHubError ? e : null;
-      const msg = err?.message ?? "Something went wrong grading that repository.";
+
+      // 3. If GitHub refused us, a stale report beats an error page.
+      if (stored && err && (err.status === 429 || err.status >= 500)) return render(stored.report);
+
+      const msg = err?.message ?? "Something went wrong marking that repository.";
       const status = err?.status === 404 ? 404 : err?.status === 429 ? 429 : 500;
       if (wantsText) {
         return new Response(`${msg}\n`, { status, headers: { "Content-Type": "text/plain; charset=utf-8" } });

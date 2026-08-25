@@ -1,0 +1,6 @@
+# Copy to .dev.vars (gitignored) and fill in.
+#
+# A GitHub token with NO scopes. It only ever reads public repositories, and
+# without it you get 60 requests/hour instead of 5,000.
+# Create one at https://github.com/settings/tokens
+GITHUB_TOKEN=github_pat_replace_me

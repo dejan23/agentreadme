@@ -29,6 +29,14 @@ const EXTRA_CSS = `
 .reg .gr{font-family:var(--mono);font-size:18px;font-weight:700;width:46px;text-align:right}
 .reg .gr.bad{color:var(--acc-t)}
 .scroll{overflow-x:auto}
+.find{display:flex;border:2px solid var(--ink);max-width:420px;margin:0 0 18px}
+.find input{flex:1;min-width:0;border:0;padding:11px 13px;font-family:var(--mono);
+  font-size:14px;background:transparent;color:var(--ink)}
+.find input:focus{outline:none;background:var(--track)}
+.find .n{flex:none;padding:11px 13px;font-family:var(--mono);font-size:12.5px;color:var(--ink-3);
+  align-self:center}
+.miss{padding:26px 10px;color:var(--ink-2);font-size:16px}
+.miss a{font-weight:600}
 #lb{transition:opacity .12s ease-out}
 #lb[data-loading]{opacity:.4}
 @media (max-width:700px){ .reg .lg,.reg .st,.reg .nm small{display:none} }
@@ -49,6 +57,7 @@ var doc=new DOMParser().parseFromString(t,'text/html'),next=doc.getElementById('
 if(!next)throw 0;
 root.innerHTML=next.innerHTML;
 root.removeAttribute('data-loading');
+if(q){var box=root.querySelector('#lbq'); if(box){box.value=q; apply()}}
 if(doc.title)document.title=doc.title;
 if(push)history.pushState({},'',url);
 }).catch(function(){location.href=url});
@@ -59,6 +68,39 @@ if(!a||(!a.closest('.filters')&&!a.closest('.langs')))return;
 e.preventDefault();load(a.getAttribute('href'),true);
 });
 window.addEventListener('popstate',function(){load(location.pathname+location.search,false)});
+
+// Filter the visible rows as you type. When nothing matches and the query
+// looks like a repository, offer to mark it instead of showing a dead end.
+var q='';
+function esc(s){return s.replace(/[<>&"]/g,function(c){return {'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]})}
+function apply(){
+var rows=root.querySelectorAll('.reg tbody tr'),n=0,t=q.trim().toLowerCase();
+for(var i=0;i<rows.length;i++){
+var hit=!t||rows[i].textContent.toLowerCase().indexOf(t)>-1;
+rows[i].hidden=!hit; if(hit)n++;
+}
+var count=root.querySelector('#lbn');
+if(count)count.textContent=t?(n+' of '+rows.length):'';
+var miss=root.querySelector('#lbmiss');
+if(!miss)return;
+if(t&&n===0){
+var slug=q.trim().replace(/^https?:\\/\\/(www\\.)?github\\.com\\//,'').replace(/\\.git$/,'').replace(/^\\/+|\\/+$/g,'');
+miss.innerHTML=/^[A-Za-z0-9][A-Za-z0-9-]*\\/[A-Za-z0-9._-]+$/.test(slug)
+?'Not on the class list. <a href="/'+esc(slug)+'">Mark '+esc(slug)+'</a> and it will be.'
+:'Nothing here matches that. The list only holds repositories above 1,000 stars.';
+miss.hidden=false;
+}else{miss.hidden=true}
+}
+document.addEventListener('input',function(e){
+if(!e.target||e.target.id!=='lbq')return; q=e.target.value; apply();
+});
+document.addEventListener('keydown',function(e){
+if(!e.target||e.target.id!=='lbq'||e.key!=='Enter')return;
+e.preventDefault();
+var first=root.querySelector('.reg tbody tr:not([hidden]) .nm a');
+if(first){location.href=first.getAttribute('href');return}
+var link=root.querySelector('#lbmiss a'); if(link)location.href=link.getAttribute('href');
+});
 })();`;
 
 function pctOf(n: number, total: number): number {
@@ -142,6 +184,12 @@ export function leaderboardPage(opts: {
   </div>`
       : ""
   }
+  <div class="find">
+    <input id="lbq" type="search" placeholder="Filter by name, owner, or description"
+      aria-label="Filter the class list" spellcheck="false" autocapitalize="off" autocorrect="off">
+    <span class="n" id="lbn"></span>
+  </div>
+  <div class="miss" id="lbmiss" hidden></div>
   ${
     rows.length
       ? `<div class="scroll"><table class="reg">

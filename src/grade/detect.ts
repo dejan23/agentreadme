@@ -32,6 +32,8 @@ export const TYPECHECK_FILES = [
 export const ENV_EXAMPLES = [
   ".env.example", ".env.sample", ".env.template", ".env.dist",
   "env.example", ".env.local.example",
+  // Cloudflare Workers projects document their environment here.
+  ".dev.vars.example", ".dev.vars.sample",
 ];
 
 export const DEVCONTAINER = [

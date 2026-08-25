@@ -88,7 +88,9 @@ export function gradeContext(s: RepoSnapshot): Category {
     verdict:
       kb > 150_000
         ? `About ${(kb / 1000).toFixed(0)}MB checked out. Large enough that cloning and searching are both slow.`
-        : `About ${kb >= 1000 ? `${(kb / 1000).toFixed(1)}MB` : `${kb}KB`} checked out, which is comfortable.`,
+        : kb === 0
+          ? "Small enough that GitHub has not reported a size yet."
+          : `About ${kb >= 1000 ? `${(kb / 1000).toFixed(1)}MB` : `${kb}KB`} checked out, which is comfortable.`,
     fix:
       repoScore >= 4
         ? undefined

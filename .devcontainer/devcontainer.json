@@ -1,0 +1,9 @@
+{
+  "name": "agentreadme",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:24",
+  "features": {
+    "ghcr.io/devcontainers-community/features/bun:1": {}
+  },
+  "postCreateCommand": "bun install && bunx wrangler d1 migrations apply agentreadme --local",
+  "forwardPorts": [8787]
+}

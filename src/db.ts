@@ -20,6 +20,8 @@ export interface Row {
   file_count: number;
   is_software: number;
   graded_at: string;
+  /** The full Report as JSON, so a page can be served without calling GitHub. */
+  report_json?: string | null;
 }
 
 /** Repos below this are graded and stored, but kept off the leaderboard. */
@@ -61,14 +63,16 @@ export function toRow(r: Report): Row {
     file_count: r.fileCount,
     is_software: r.isSoftware ? 1 : 0,
     graded_at: r.gradedAt,
+    report_json: JSON.stringify(r),
   };
 }
 
 const UPSERT = `INSERT INTO reports (
   slug, owner, repo, score, grade, stars, language, description,
   pct_instructions, pct_setup, pct_verification, pct_context, pct_navigation,
-  has_agents_md, has_any_agent_doc, has_test_command, file_count, is_software, graded_at
-) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+  has_agents_md, has_any_agent_doc, has_test_command, file_count, is_software, graded_at,
+  report_json
+) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
 ON CONFLICT(slug) DO UPDATE SET
   score=excluded.score, grade=excluded.grade, stars=excluded.stars,
   language=excluded.language, description=excluded.description,
@@ -77,13 +81,14 @@ ON CONFLICT(slug) DO UPDATE SET
   pct_navigation=excluded.pct_navigation, has_agents_md=excluded.has_agents_md,
   has_any_agent_doc=excluded.has_any_agent_doc, has_test_command=excluded.has_test_command,
   file_count=excluded.file_count, is_software=excluded.is_software,
-  graded_at=excluded.graded_at`;
+  graded_at=excluded.graded_at, report_json=excluded.report_json`;
 
 export function upsertValues(r: Row): unknown[] {
   return [
     r.slug, r.owner, r.repo, r.score, r.grade, r.stars, r.language, r.description,
     r.pct_instructions, r.pct_setup, r.pct_verification, r.pct_context, r.pct_navigation,
     r.has_agents_md, r.has_any_agent_doc, r.has_test_command, r.file_count, r.is_software, r.graded_at,
+    r.report_json ?? null,
   ];
 }
 
@@ -188,4 +193,32 @@ export async function languageMedians(
     .bind(LEADERBOARD_MIN_STARS, minSample, limit)
     .all<{ language: string; m: number }>();
   return (results ?? []).map((r) => [r.language, r.m] as [string, number]);
+}
+
+/**
+ * A previously stored report, with how old it is.
+ *
+ * This is the second cache layer and the main defence against someone burning
+ * the shared GitHub token: a repo we have already marked costs zero API calls
+ * to serve, and a stale copy is far better than an error when the token is
+ * exhausted.
+ */
+export async function storedReport(
+  db: D1Database,
+  owner: string,
+  repo: string,
+): Promise<{ report: Report; ageMs: number } | null> {
+  const row = await db
+    .prepare(`SELECT report_json, graded_at FROM reports WHERE slug = ?`)
+    .bind(`${owner}/${repo}`.toLowerCase())
+    .first<{ report_json: string | null; graded_at: string }>();
+
+  if (!row?.report_json) return null;
+  try {
+    const report = JSON.parse(row.report_json) as Report;
+    const ageMs = Date.now() - Date.parse(row.graded_at);
+    return { report, ageMs: Number.isFinite(ageMs) ? ageMs : Number.MAX_SAFE_INTEGER };
+  } catch {
+    return null;
+  }
 }

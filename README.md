@@ -75,15 +75,24 @@ particularly outside JavaScript and Python. The rules live in
 [`src/grade/`](src/grade/) and each one is a pure function over a snapshot, so
 adding a case is small. A pull request beats an argument.
 
-## Development
-
-See [AGENTS.md](AGENTS.md) for setup, commands, and conventions.
+## Install
 
 ```
 bun install
-bun run test
-bun run scripts/probe.ts honojs/hono
+cp .dev.vars.example .dev.vars     # add a GitHub token with no scopes
+bunx wrangler d1 migrations apply agentreadme --local
 ```
+
+## Usage
+
+```
+bun run dev                          # local server on :8787
+bun run test                         # 21 tests, no network
+bun run typecheck
+bun run scripts/probe.ts honojs/hono # grade one repo in the terminal
+```
+
+See [AGENTS.md](AGENTS.md) for the full set of commands and conventions.
 
 ## Licence
 
