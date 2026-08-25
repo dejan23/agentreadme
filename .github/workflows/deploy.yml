@@ -47,8 +47,19 @@ jobs:
             echo "$path -> $code"
             [ "$code" = "200" ] || { echo "FAILED on $path"; exit 1; }
           done
-          # Confirm the deploy that just ran is the one now serving traffic.
-          live=$(curl -s --retry 5 --retry-delay 4 "$BASE/version" | grep -o '"commit":"[^"]*"' | cut -d'"' -f4)
-          echo "live commit: $live"
-          echo "this commit: ${{ github.sha }}"
-          [ "$live" = "${{ github.sha }}" ] || { echo "Deployed commit does not match; something else is serving"; exit 1; }
+          # Confirm the deploy that just ran is the one serving traffic.
+          # A new version takes a little while to reach every location, and curl
+          # --retry does not help: a stale version answers 200, so there is
+          # nothing for it to retry on. Poll until it matches or time out.
+          want="${{ github.sha }}"
+          for i in $(seq 1 24); do
+            live=$(curl -s "$BASE/version?cb=$i" | grep -o '"commit":"[^"]*"' | cut -d'"' -f4)
+            if [ "$live" = "$want" ]; then
+              echo "live commit matches after ${i} checks: $live"
+              exit 0
+            fi
+            echo "  attempt $i: serving $live, waiting for $want"
+            sleep 5
+          done
+          echo "Timed out after two minutes still serving $live, expected $want"
+          exit 1

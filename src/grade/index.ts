@@ -4,6 +4,7 @@ import { gradeSetup } from "./rules-setup";
 import { gradeVerification } from "./rules-verification";
 import { gradeContext, gradeNavigation } from "./rules-context";
 import { blobs, projectShape } from "./detect";
+import { draftAgentsMd } from "./draft";
 
 export function letterGrade(score: number): string {
   if (score >= 93) return "A+";
@@ -64,5 +65,6 @@ export function grade(s: RepoSnapshot): Report {
     gradedAt: new Date().toISOString(),
     isSoftware: shape.isSoftware,
     shapeReason: shape.reason,
+    draft: draftAgentsMd(s),
   };
 }

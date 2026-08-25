@@ -17,6 +17,11 @@
       "migrations_dir": "migrations"
     }
   ],
+  // Guards the only scarce resource: calls to GitHub against one shared token.
+  // Cached and database-served requests never reach it.
+  "ratelimits": [
+    { "name": "GRADE_LIMIT", "namespace_id": "1001", "simple": { "limit": 20, "period": 60 } }
+  ],
   "workers_dev": true,
   "routes": [
     { "pattern": "agentreadme.com", "custom_domain": true },

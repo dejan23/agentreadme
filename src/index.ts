@@ -17,6 +17,8 @@ export interface Env {
   GIT_SHA?: string;
   /** Pre-rendered Open Graph cards. */
   ASSETS?: Fetcher;
+  /** Throttles live grading. See the note in wrangler.jsonc. */
+  GRADE_LIMIT?: { limit(opts: { key: string }): Promise<{ success: boolean }> };
 }
 
 const app = new Hono<{ Bindings: Env }>();
@@ -46,6 +48,7 @@ app.get("/version", (c) =>
 const RESERVED = new Set([
   "about", "leaderboard", "analyze", "badge", "og", "favicon.svg", "robots.txt",
   "sitemap.xml", "what-is-agents-md", "api", "static", "_", "assets", "privacy", "terms", "version", "og",
+  "draft",
 ]);
 
 // GitHub's own rules: an owner is alphanumeric with single hyphens, a repo may
@@ -99,6 +102,28 @@ async function cached(
  * an error.
  */
 const FRESH_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Allowed to mark a repository we have not seen before?
+ *
+ * Deliberately checked only on the path that calls GitHub, never on cached or
+ * stored responses. Two reasons: ordinary reading should never be throttled,
+ * and badge traffic arrives through GitHub's image proxy from a small set of
+ * addresses, so limiting those by IP would break badges for everyone at once.
+ */
+async function mayGradeLive(c: {
+  env: Env;
+  req: { header(name: string): string | undefined };
+}): Promise<boolean> {
+  if (!c.env.GRADE_LIMIT) return true;
+  const ip = c.req.header("cf-connecting-ip") ?? "unknown";
+  try {
+    const { success } = await c.env.GRADE_LIMIT.limit({ key: `grade:${ip}` });
+    return success;
+  } catch {
+    return true; // never let the limiter itself take the site down
+  }
+}
 
 const HTML = { "Content-Type": "text/html; charset=utf-8" };
 const SVG = {
@@ -156,6 +181,41 @@ app.get("/favicon.svg", (c) =>
  * no crawler ever finds.
  */
 /** The card for a repo, falling back to the finding card for anything unrendered. */
+/** The drafted AGENTS.md as raw markdown, ready to save straight into a repo. */
+app.get("/draft/:owner/:repo", async (c) => {
+  const parsed = parseRepo(`${c.req.param("owner")}/${c.req.param("repo").replace(/\.md$/i, "")}`);
+  if (!parsed) return c.text("Not a GitHub repository.\n", 400);
+
+  return cached(c, 21600, async () => {
+    const db = c.env.DB;
+    const md = (report: Report) =>
+      new Response(report.draft, {
+        status: 200,
+        headers: {
+          "Content-Type": "text/markdown; charset=utf-8",
+          "Content-Disposition": `inline; filename="AGENTS.md"`,
+        },
+      });
+
+    const stored = db ? await storedReport(db, parsed.owner, parsed.repo).catch(() => null) : null;
+    if (stored?.report.draft && stored.ageMs < FRESH_MS) return md(stored.report);
+
+    if (!(await mayGradeLive(c))) {
+      if (stored?.report.draft) return md(stored.report);
+      return new Response("Too many new repositories from this address. Try again in a minute.\n", { status: 429 });
+    }
+    try {
+      const report = grade(await snapshot(parsed.owner, parsed.repo, c.env.GITHUB_TOKEN));
+      if (db) c.executionCtx.waitUntil(saveReport(db, report).catch(() => {}));
+      return md(report);
+    } catch (e) {
+      const err = e instanceof GitHubError ? e : null;
+      if (stored?.report.draft) return md(stored.report);
+      return new Response(`${err?.message ?? "Could not mark that repository."}\n`, { status: err?.status ?? 500 });
+    }
+  });
+});
+
 app.get("/og/:owner/:repo", async (c) => {
   if (!c.env.ASSETS) return c.notFound();
   const repo = c.req.param("repo").replace(/\.png$/, "");
@@ -234,6 +294,7 @@ app.get("/badge/:owner/:repo", async (c) => {
     if (stored && stored.ageMs < FRESH_MS) {
       return new Response(gradeBadge(stored.report.score, stored.report.grade), { status: 200, headers: SVG });
     }
+    if (!(await mayGradeLive(c))) return new Response(errorBadge("rate limited"), { status: 200, headers: SVG });
     try {
       const r = grade(await snapshot(parsed.owner, parsed.repo, c.env.GITHUB_TOKEN));
       if (db) c.executionCtx.waitUntil(saveReport(db, r).catch(() => {}));
@@ -271,7 +332,16 @@ app.get("/:owner/:repo", async (c) => {
     const stored = db ? await storedReport(db, parsed.owner, parsed.repo).catch(() => null) : null;
     if (stored && stored.ageMs < FRESH_MS) return render(stored.report, await related(stored.report));
 
-    // 2. Otherwise mark it live.
+    // 2. Otherwise mark it live, if this caller has budget left.
+    if (!(await mayGradeLive(c))) {
+      if (stored) return render(stored.report, await related(stored.report));
+      const msg = "Too many new repositories from this address. Try again in a minute.";
+      if (wantsText) {
+        return new Response(`${msg}\n`, { status: 429, headers: { "Content-Type": "text/plain; charset=utf-8" } });
+      }
+      return new Response(errorPage(msg, 429, `${parsed.owner}/${parsed.repo}`), { status: 429, headers: HTML });
+    }
+
     try {
       const report = grade(await snapshot(parsed.owner, parsed.repo, c.env.GITHUB_TOKEN));
       if (db) {

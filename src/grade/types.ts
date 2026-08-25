@@ -46,6 +46,8 @@ export interface Report {
   /** False for awesome-lists, books, and tutorial repos. Keeps them off the leaderboard. */
   isSoftware: boolean;
   shapeReason: string;
+  /** An AGENTS.md drafted from this repository, so the report ends in a fix. */
+  draft: string;
 }
 
 export interface TreeEntry {

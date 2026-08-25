@@ -140,6 +140,23 @@ ${
   ${r.categories.map((c, i) => categoryBlock(c, i === 0)).join("")}
 </section>
 
+<section>
+  <h2>Here is your <i>AGENTS.md</i></h2>
+  <p class="lede" style="margin:16px 0 20px">Drafted from what is actually in this repository: the install
+    command from your lockfile, the commands you already declare, your real directory layout. Anything
+    marked TODO needs a person. Save it at the root as <code>AGENTS.md</code>.</p>
+  <div class="term">
+    <div class="bar">
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+      <span class="name">AGENTS.md \u2014 drafted for ${esc(slug)}</span>
+    </div>
+    <div class="body"><pre>${esc(r.draft)}</pre></div>
+  </div>
+  <p style="margin-top:16px"><a href="/draft/${esc(slug)}.md">Open the raw markdown</a>
+    <span class="note">&nbsp;or&nbsp;</span>
+    <code>curl -o AGENTS.md ${SITE}/draft/${esc(slug)}.md</code></p>
+</section>
+
 <section class="two">
   <div>
     <h2>Show the <i>mark</i></h2>
