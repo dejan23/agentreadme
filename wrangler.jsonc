@@ -14,5 +14,9 @@
       "migrations_dir": "migrations"
     }
   ],
-  "workers_dev": true
+  "workers_dev": true,
+  "routes": [
+    { "pattern": "agentreadme.com", "custom_domain": true },
+    { "pattern": "www.agentreadme.com", "custom_domain": true }
+  ]
 }
