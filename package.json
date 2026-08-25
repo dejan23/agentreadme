@@ -47,7 +47,7 @@
     "cli"
   ],
   "bin": {
-    "agentreadme": "./dist/cli.js"
+    "agentreadme": "dist/cli.js"
   },
   "files": [
     "dist"

@@ -9,3 +9,4 @@ dist/
 seed/
 internal-notes/
 dist/
+*.tgz
