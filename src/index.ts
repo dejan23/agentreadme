@@ -9,6 +9,8 @@ import { aboutPage, agentsMdPage, homePage, notFoundPage } from "./render/static
 import { leaderboardPage } from "./render/leaderboard";
 import { feedbackPage } from "./render/feedback";
 import { findingsPage } from "./render/findings";
+import { GUIDES, guideBySlug } from "./render/guides-data";
+import { guidePage, guidesIndex } from "./render/guides";
 import { privacyPage, termsPage } from "./render/legal";
 import { type Row, type Sort, allSlugs, languageMedians, languages, leaderboard, leaderboardStats, relatedRepos, saveReport, storedReport } from "./db";
 
@@ -50,7 +52,7 @@ app.get("/version", (c) =>
 const RESERVED = new Set([
   "about", "leaderboard", "analyze", "badge", "og", "favicon.svg", "robots.txt",
   "sitemap.xml", "what-is-agents-md", "api", "static", "_", "assets", "privacy", "terms", "version", "og",
-  "draft", "findings", "feedback",
+  "draft", "findings", "feedback", "llms.txt", "guides",
 ]);
 
 // GitHub's own rules: an owner is alphanumeric with single hyphens, a repo may
@@ -186,6 +188,11 @@ app.get("/leaderboard", async (c) => {
 app.get("/what-is-agents-md", (c) => c.html(agentsMdPage()));
 app.get("/findings", (c) => c.html(findingsPage()));
 app.get("/feedback", (c) => c.html(feedbackPage()));
+app.get("/guides", (c) => c.html(guidesIndex()));
+app.get("/guides/:slug", (c) => {
+  const g = guideBySlug(c.req.param("slug"));
+  return g ? c.html(guidePage(g)) : c.html(notFoundPage(), 404);
+});
 app.get("/privacy", (c) => c.html(privacyPage()));
 app.get("/terms", (c) => c.html(termsPage()));
 
@@ -267,7 +274,11 @@ app.get("/og/:owner/:repo", async (c) => {
 
 app.get("/sitemap.xml", async (c) => {
   const base = "https://agentreadme.com";
-  const statics = ["/", "/findings", "/leaderboard", "/about", "/what-is-agents-md", "/feedback", "/privacy", "/terms"];
+  const statics = [
+    "/", "/findings", "/leaderboard", "/about", "/what-is-agents-md", "/guides",
+    ...GUIDES.map((g) => `/guides/${g.slug}`),
+    "/feedback", "/privacy", "/terms",
+  ];
   const langs = c.env.DB ? await languages(c.env.DB).catch(() => []) : [];
   const repos = c.env.DB ? await allSlugs(c.env.DB).catch(() => []) : [];
 
@@ -292,8 +303,87 @@ ${repos.map((r) => url(`/${r.slug}`, r.graded_at, "0.5")).join("\n")}
   });
 });
 
+/**
+ * Everything is welcome, and the AI crawlers are named on purpose.
+ *
+ * This audience asks an assistant before it asks a search engine. Being the
+ * answer to "how do I make my repo work with Claude Code" is worth more here
+ * than a blue link, so blocking those crawlers would be self defeating.
+ */
 app.get("/robots.txt", (c) =>
-  c.text(`User-agent: *\nAllow: /\nSitemap: https://agentreadme.com/sitemap.xml\n`),
+  c.text(
+    [
+      "User-agent: *",
+      "Allow: /",
+      "",
+      "# AI crawlers are explicitly welcome. The rubric is public, the data is",
+      "# public, and we would rather be quoted correctly than not at all.",
+      ...["GPTBot", "OAI-SearchBot", "ChatGPT-User", "ClaudeBot", "Claude-User", "anthropic-ai", "PerplexityBot", "Perplexity-User", "Google-Extended", "Applebot-Extended", "CCBot", "cohere-ai", "Bytespider", "meta-externalagent"].flatMap(
+        (ua) => [`User-agent: ${ua}`, "Allow: /"],
+      ),
+      "",
+      "Sitemap: https://agentreadme.com/sitemap.xml",
+      "",
+    ].join("\n"),
+  ),
+);
+
+/**
+ * llms.txt: a short map of the site for anything reading it as a source rather
+ * than rendering it. Cheap to keep accurate, and the whole point of this
+ * project is being machine legible.
+ */
+app.get("/llms.txt", (c) =>
+  c.text(
+    `# agentreadme.com
+
+> Grades any public GitHub repository on how well AI coding agents can work in
+> it, and drafts an AGENTS.md from what the repository already contains.
+> Nothing is cloned and no code is executed.
+
+## What it measures
+
+Five categories, 100 marks: Instructions (27), Setup (20), Verification loop
+(25), Context economy (20), Navigability (10). Checks that do not apply to a
+project are removed from the total rather than scored zero.
+
+## Findings, measured 25 August 2026 across the 864 most-starred software repos
+
+- Median score 61 of 100. 2% scored an A.
+- 38% have no test command an agent can discover.
+- 60% carry no agent instructions of any kind.
+- Instructions is the weakest category, averaging 39% of available marks.
+- Repos shipping an AGENTS.md have a median of 78 against 54 without. That is
+  correlation: teams that write it already had a lockfile and runnable tests.
+- Median by language: TypeScript 71, Go 70, Rust 63, Python 60, JavaScript 60,
+  Java 44, C++ 42, C 38.
+
+## Machine readable
+
+- https://agentreadme.com/OWNER/REPO.txt — any repo's report as plain text
+- https://agentreadme.com/draft/OWNER/REPO.md — a drafted AGENTS.md
+- https://agentreadme.com/badge/OWNER/REPO.svg — the score as an SVG badge
+
+## Pages
+
+- https://agentreadme.com/findings — the full study and method
+- https://agentreadme.com/about — the complete marking scheme
+- https://agentreadme.com/what-is-agents-md — what AGENTS.md is and how to write one
+- https://agentreadme.com/leaderboard — every marked repository, ranked
+- https://agentreadme.com/feedback — how to report a mark that is wrong
+
+## Private repositories
+
+Cannot be graded by this site, by design. \`npx agentreadme\` runs the same rubric
+locally and makes no network calls at all.
+
+## Source
+
+https://github.com/dejan23/agentreadme (MIT)
+`,
+    200,
+    { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "public, max-age=3600" },
+  ),
 );
 
 /** Search box target. Normalises whatever was pasted, then redirects to the canonical URL. */

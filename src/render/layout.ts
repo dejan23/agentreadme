@@ -277,13 +277,13 @@ ${announce ? `<div class="announce">${announce}</div>` : ""}
 <header class="top"><div class="inner">
   <a class="brand" href="/">agent<i>readme</i></a>
   <nav>
-    <a href="/findings">Findings</a><a href="/leaderboard">Class list</a><a href="/what-is-agents-md">AGENTS.md</a><a href="/about">Marking scheme</a><a href="/feedback">Feedback</a><a href="https://github.com/dejan23/agentreadme" class="src">GitHub</a>
+    <a href="/findings">Findings</a><a href="/leaderboard">Class list</a><a href="/guides">Guides</a><a href="/about">Marking scheme</a><a href="/feedback">Feedback</a><a href="https://github.com/dejan23/agentreadme" class="src">GitHub</a>
   </nav>
 </div></header>
 <main class="wrap">${body}</main>
 <footer><div class="wrap">
   <p>Every public repository is marked against the same scheme. Nothing is cloned, nothing is executed, and private repositories cannot be marked.</p>
-  <p><a href="/about">Marking scheme</a> · <a href="/findings">Findings</a> · <a href="/feedback">Feedback</a> · <a href="https://github.com/dejan23/agentreadme">GitHub</a> · <a href="https://www.npmjs.com/package/agentreadme">npm</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a></p>
+  <p><a href="/about">Marking scheme</a> · <a href="/guides">Guides</a> · <a href="/findings">Findings</a> · <a href="/feedback">Feedback</a> · <a href="https://github.com/dejan23/agentreadme">GitHub</a> · <a href="https://www.npmjs.com/package/agentreadme">npm</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a></p>
   <p style="margin-top:14px">Built by <a href="https://x.com/dejansto_" rel="me">@dejansto_</a></p>
 </div></footer>
 <script>${COUNT_JS}${extraJs ?? ""}</script>

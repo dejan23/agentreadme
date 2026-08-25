@@ -1,6 +1,6 @@
 import type { Category, Check, RepoSnapshot } from "./types";
 import { tally } from "./tally";
-import { CI_FILES, LINTER_FILES, TYPECHECK_FILES, blobs, ciWorkflows, existsAnywhere, file, has, hasAny, isSource, matching, pkg, pyproject, testFiles } from "./detect";
+import { CI_FILES, LINTER_FILES, TYPECHECK_FILES, blobs, ciWorkflows, compilerTypeChecks, existsAnywhere, file, has, hasAny, isSource, matching, pkg, pyproject, testFiles } from "./detect";
 
 export function gradeVerification(s: RepoSnapshot): Category {
   const checks: Check[] = [];
@@ -122,33 +122,47 @@ export function gradeVerification(s: RepoSnapshot): Category {
   });
 
   // --- Types ---
-  const tsconfigRaw = file(s, "tsconfig.json");
-  const strict = tsconfigRaw ? /"strict"\s*:\s*true/.test(tsconfigRaw) : false;
-  const typeCfg = hasAny(s, TYPECHECK_FILES);
-  const mypyInPyproject = pyproj ? /\[tool\.(mypy|pyright)/.test(pyproj) : false;
-  const typed = has(s, "py.typed") || matching(s, /(^|\/)py\.typed$/).length > 0;
-  let typeScore = 0;
-  if (typeCfg || mypyInPyproject || typed) typeScore += 2;
-  if (strict) typeScore += 1;
-  checks.push({
-    id: "types",
-    label: "Static type checking",
-    score: typeScore,
-    max: 3,
-    severity: typeScore >= 2 ? undefined : "minor",
-    verdict:
-      typeScore === 3
-        ? "Strict type checking is on, which catches a whole class of agent mistakes before they run."
-        : typeScore === 2
-          ? "Type checking is configured, but not in strict mode."
-          : "No static type checking.",
-    fix:
-      typeScore === 3
-        ? undefined
-        : tsconfigRaw && !strict
-          ? 'Turn on `"strict": true`. Type errors are the fastest feedback an agent gets, and non-strict mode silently discards most of them.'
-          : "A type checker gives an agent an error message instead of a runtime surprise. It's the second-fastest feedback loop after the compiler.",
-  });
+  // A compiled, statically typed language type checks on every build. Asking it
+  // for a tsconfig is the rubric being wrong, not the repository.
+  const compiled = compilerTypeChecks(s);
+  if (compiled) {
+    checks.push({
+      id: "types",
+      label: "Static type checking",
+      score: 0,
+      max: 3,
+      na: true,
+      verdict: `Not applicable — the ${compiled} compiler type checks every build.`,
+    });
+  } else {
+    const tsconfigRaw = file(s, "tsconfig.json");
+    const strict = tsconfigRaw ? /"strict"\s*:\s*true/.test(tsconfigRaw) : false;
+    const typeCfg = hasAny(s, TYPECHECK_FILES);
+    const mypyInPyproject = pyproj ? /\[tool\.(mypy|pyright)/.test(pyproj) : false;
+    const typed = has(s, "py.typed") || matching(s, /(^|\/)py\.typed$/).length > 0;
+    let typeScore = 0;
+    if (typeCfg || mypyInPyproject || typed) typeScore += 2;
+    if (strict) typeScore += 1;
+    checks.push({
+      id: "types",
+      label: "Static type checking",
+      score: typeScore,
+      max: 3,
+      severity: typeScore >= 2 ? undefined : "minor",
+      verdict:
+        typeScore === 3
+          ? "Strict type checking is on, which catches a whole class of agent mistakes before they run."
+          : typeScore === 2
+            ? "Type checking is configured, but not in strict mode."
+            : "No static type checking.",
+      fix:
+        typeScore === 3
+          ? undefined
+          : tsconfigRaw && !strict
+            ? 'Turn on `"strict": true`. Type errors are the fastest feedback an agent gets, and non-strict mode silently discards most of them.'
+            : "A type checker gives an agent an error message instead of a runtime surprise. It's the second-fastest feedback loop after the compiler.",
+    });
+  }
 
   return tally("verification", "Verification loop", "Whether an agent can check its own work. This is the category that most decides whether agent output is trustworthy.", checks);
 }

@@ -27,7 +27,7 @@ for (const t of targets) {
     for (const c of r.categories) {
       console.log(`  ${c.label.padEnd(20)} ${String(c.score).padStart(3)}/${c.max}`);
       for (const ch of c.checks) {
-        const mark = ch.score === ch.max ? "✓" : ch.score === 0 ? "✗" : "~";
+        const mark = ch.na ? "–" : ch.score === ch.max ? "✓" : ch.score === 0 ? "✗" : "~";
         console.log(`    ${mark} ${ch.label.padEnd(30)} ${ch.score}/${ch.max}  ${ch.verdict}`);
       }
     }
