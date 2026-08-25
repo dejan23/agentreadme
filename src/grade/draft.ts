@@ -75,15 +75,25 @@ function describe(key: string): string {
   return m[key] ?? "";
 }
 
-/** Top-level directories, so an agent knows where things live. */
+/**
+ * Top-level directories, so an agent knows where things live.
+ *
+ * Ranked by source files rather than total files. Counting everything put a
+ * folder of generated images at the top of our own draft, which tells an agent
+ * nothing about where the code is.
+ */
 function layout(s: RepoSnapshot): Array<[string, number]> {
-  const counts = new Map<string, number>();
+  const src = new Map<string, number>();
+  const all = new Map<string, number>();
   for (const e of blobs(s)) {
     const top = e.path.includes("/") ? e.path.slice(0, e.path.indexOf("/")) : null;
     if (!top || top.startsWith(".")) continue;
-    counts.set(top, (counts.get(top) ?? 0) + 1);
+    all.set(top, (all.get(top) ?? 0) + 1);
+    if (isSource(e.path)) src.set(top, (src.get(top) ?? 0) + 1);
   }
-  return [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6);
+  const ranked = [...src.entries()].sort((a, b) => b[1] - a[1]);
+  // A repo with no recognised source extensions still deserves a layout.
+  return (ranked.length ? ranked : [...all.entries()].sort((a, b) => b[1] - a[1])).slice(0, 6);
 }
 
 /**
@@ -135,7 +145,9 @@ export function draftAgentsMd(s: RepoSnapshot): string {
   if (dirs.length) {
     out.push("## Layout", "");
     const width = Math.max(...dirs.map(([d]) => d.length));
-    for (const [dir, n] of dirs) out.push(`- \`${dir}/\`${" ".repeat(Math.max(0, width - dir.length))} ${n} files`);
+    for (const [dir, n] of dirs) {
+      out.push(`- \`${dir}/\`${" ".repeat(Math.max(0, width - dir.length))} ${n} source ${n === 1 ? "file" : "files"}`);
+    }
     out.push("");
   }
 

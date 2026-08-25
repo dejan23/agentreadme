@@ -126,6 +126,17 @@ a.bar:hover .tip,a.bar:focus-visible .tip{opacity:1;visibility:visible}
   vertical-align:-2px;margin-left:2px;animation:blink 1.05s step-end infinite}
 @keyframes blink{0%,50%{opacity:1}50.01%,100%{opacity:0}}
 
+/* copy buttons, added by script so nothing dead renders without JS */
+.copy{font-family:var(--sans);font-size:12px;font-weight:600;letter-spacing:.02em;
+  background:transparent;color:#8A8A8A;border:1px solid #333;padding:4px 10px;
+  cursor:pointer;line-height:1.4}
+.copy:hover{color:#fff;border-color:#666}
+.copy:active{transform:translateY(1px)}
+.copy[data-done]{color:var(--acc);border-color:var(--acc)}
+.term .bar .copy{margin-left:auto}
+.copywrap{position:relative}
+.copywrap>.copy{position:absolute;top:10px;right:10px;z-index:2;background:var(--ink)}
+
 /* code / report block */
 pre{background:var(--ink);color:#F2F2F2;padding:20px 22px;margin:0;overflow-x:auto;
   font-family:var(--mono);font-size:13.5px;line-height:1.65}
@@ -283,6 +294,36 @@ els.forEach(function(el){io.observe(el);});
 // Safety net. If the observer never fires for a figure, showing a permanent 0
 // is far worse than skipping the animation, so put the real number back.
 setTimeout(function(){els.forEach(function(el){if(!el.dataset.ran)done(el)})},4000);
+})();
+
+(function(){
+// Added by script rather than markup: without a clipboard API the button would
+// be a dead control, so it only exists where it can actually work.
+if(!navigator.clipboard)return;
+[].slice.call(document.querySelectorAll('pre')).forEach(function(pre){
+var term=pre.closest('.term'),bar=term&&term.querySelector('.bar');
+var b=document.createElement('button');
+b.className='copy';b.type='button';b.textContent='Copy';
+b.setAttribute('aria-label','Copy to clipboard');
+b.addEventListener('click',function(){
+navigator.clipboard.writeText(pre.innerText).then(function(){
+b.textContent='Copied';b.setAttribute('data-done','');
+setTimeout(function(){b.textContent='Copy';b.removeAttribute('data-done')},2000);
+}).catch(function(){
+// Clipboard refused, which happens without a secure context or user gesture.
+// Select the block so the keyboard shortcut does the job instead of telling
+// someone to press a key with nothing selected.
+try{var r=document.createRange();r.selectNodeContents(pre);
+var sel=getSelection();sel.removeAllRanges();sel.addRange(r);
+b.textContent='Selected, press Cmd+C';}catch(e){b.textContent='Select and copy';}
+setTimeout(function(){b.textContent='Copy'},2600)});
+});
+if(bar){bar.appendChild(b)}
+else{var w=pre.parentElement;
+if(!w.classList.contains('copywrap')){w=document.createElement('div');w.className='copywrap';
+pre.parentElement.insertBefore(w,pre);w.appendChild(pre)}
+w.appendChild(b)}
+});
 })();`;
 
 /** A figure that counts up on first view, correct in the HTML either way. */
