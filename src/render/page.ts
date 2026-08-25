@@ -179,6 +179,7 @@ ${r.truncatedTree ? `<p class="note">This repository is large enough that GitHub
     description: `${slug} scores ${r.score}/100 (${r.grade}) for AI coding agents. ${headline(r)} See the full breakdown and what to fix first.`,
     canonical: `/${slug}`,
     body,
+    ogImage: `/og/${slug}.png`,
     noindex: !r.isSoftware,
     jsonLd: {
       "@context": "https://schema.org",

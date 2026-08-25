@@ -15,6 +15,8 @@ export interface Env {
   DB?: D1Database;
   /** Commit this build came from. Injected by the deploy workflow. */
   GIT_SHA?: string;
+  /** Pre-rendered Open Graph cards. */
+  ASSETS?: Fetcher;
 }
 
 const app = new Hono<{ Bindings: Env }>();
@@ -43,7 +45,7 @@ app.get("/version", (c) =>
 /** Paths that are pages of ours, not GitHub owners. */
 const RESERVED = new Set([
   "about", "leaderboard", "analyze", "badge", "og", "favicon.svg", "robots.txt",
-  "sitemap.xml", "what-is-agents-md", "api", "static", "_", "assets", "privacy", "terms", "version",
+  "sitemap.xml", "what-is-agents-md", "api", "static", "_", "assets", "privacy", "terms", "version", "og",
 ]);
 
 // GitHub's own rules: an owner is alphanumeric with single hyphens, a repo may
@@ -153,6 +155,34 @@ app.get("/favicon.svg", (c) =>
  * repositories past the first hundred are orphans that nothing links to and
  * no crawler ever finds.
  */
+/** The card for a repo, falling back to the finding card for anything unrendered. */
+app.get("/og/:owner/:repo", async (c) => {
+  if (!c.env.ASSETS) return c.notFound();
+  const repo = c.req.param("repo").replace(/\.png$/, "");
+  const parsed = parseRepo(`${c.req.param("owner")}/${repo}`);
+
+  const url = new URL(c.req.url);
+  const name = parsed
+    ? `${parsed.owner}__${parsed.repo}`.toLowerCase().replace(/[^a-z0-9._-]/g, "-")
+    : null;
+
+  if (name) {
+    const hit = await c.env.ASSETS.fetch(new URL(`/og/${name}.png`, url));
+    if (hit.ok) {
+      return new Response(hit.body, {
+        status: 200,
+        headers: { "Content-Type": "image/png", "Cache-Control": "public, max-age=86400, s-maxage=86400" },
+      });
+    }
+  }
+
+  const fallback = await c.env.ASSETS.fetch(new URL("/og/default.png", url));
+  return new Response(fallback.body, {
+    status: fallback.ok ? 200 : 404,
+    headers: { "Content-Type": "image/png", "Cache-Control": "public, max-age=3600, s-maxage=3600" },
+  });
+});
+
 app.get("/sitemap.xml", async (c) => {
   const base = "https://agentreadme.com";
   const statics = ["/", "/leaderboard", "/about", "/what-is-agents-md", "/privacy", "/terms"];

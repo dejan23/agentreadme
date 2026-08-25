@@ -133,6 +133,7 @@ ${
     description:
       "Grade any public GitHub repo on how well AI coding agents can work in it. Instructions, setup, tests, context economy. See what to fix first.",
     canonical: "/",
+    ogImage: "/og/default.png",
     jsonLd: {
       "@context": "https://schema.org",
       "@type": "WebSite",
@@ -208,6 +209,7 @@ export function aboutPage(): string {
     description:
       "The full rubric behind the mark: instructions, setup, the verification loop, context economy, and navigability, with every check traced to a file in the repository.",
     canonical: "/about",
+    ogImage: "/og/default.png",
     body,
   });
 }
@@ -279,6 +281,7 @@ pnpm typecheck    # tsc --noEmit
     description:
       "AGENTS.md tells an AI coding agent how to work in your repo. What belongs in it, what makes one useless, and how it differs from a README.",
     canonical: "/what-is-agents-md",
+    ogImage: "/og/default.png",
     jsonLd: {
       "@context": "https://schema.org",
       "@type": "TechArticle",

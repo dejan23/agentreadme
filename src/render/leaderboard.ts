@@ -223,6 +223,7 @@ export function leaderboardPage(opts: {
     description: `${stats.total.toLocaleString()} popular open source repos ranked on AI agent readiness. Median ${stats.median}/100, and ${noTest}% have no test command an agent can find.`,
     canonical: language ? `/leaderboard?sort=${sort}&lang=${encodeURIComponent(language)}` : `/leaderboard?sort=${sort}`,
     body,
+    ogImage: "/og/default.png",
     extraCss: EXTRA_CSS,
     extraJs: FILTER_JS,
     jsonLd: {

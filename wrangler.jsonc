@@ -6,6 +6,9 @@
   "compatibility_date": "2026-08-01",
   "compatibility_flags": ["nodejs_compat"],
   "observability": { "enabled": true },
+  // Open Graph cards. Rasterising a PNG costs far more CPU than the free plan
+  // allows per request, so they are pre-rendered and served as static files.
+  "assets": { "directory": "./public", "binding": "ASSETS" },
   "d1_databases": [
     {
       "binding": "DB",
