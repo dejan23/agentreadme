@@ -155,7 +155,7 @@ export function leaderboardPage(opts: {
 
 <section class="center">
   <h2>Mark <i>yours</i>.</h2>
-  <p class="lede" style="margin:18px 0 24px">Two API calls. Nothing cloned, nothing executed, no account.</p>
+  <p class="lede">Two API calls. Nothing cloned, nothing executed, no account.</p>
   ${searchForm()}
 </section>`;
 

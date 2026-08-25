@@ -1,0 +1,11 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html",    "x": 0,    "y": 0,    "w": 1200, "h": 630, "title": "Repo card" },
+    { "file": "Finding.dc.html", "x": 1320, "y": 0,    "w": 1200, "h": 630, "title": "The finding" },
+    { "file": "Failing.dc.html", "x": 0,    "y": 780,  "w": 1200, "h": 630, "title": "Failing variant" }
+  ],
+  "annotations": [
+    { "id": "spec", "x": 1320, "y": 780, "w": 420, "text": "1200x630. Every value is a template hole:\nrepo name, score, grade, five bar widths,\nfive score pairs, one closing line.\n\nAccent marks failures only.\nBars truncate, names ellipsis, nothing wraps." }
+  ],
+  "launch": { "view": "canvas" }
+}

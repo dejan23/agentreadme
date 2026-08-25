@@ -107,7 +107,7 @@ ${
 
 <section class="center">
   <h2>Try it on the repo you have <i>open right now</i>.</h2>
-  <p class="lede" style="margin:18px 0 24px">Two API calls. Nothing cloned, nothing executed, no account.
+  <p class="lede">Two API calls. Nothing cloned, nothing executed, no account.
     The marking scheme is <a href="/about">published in full</a> and every deduction cites its file.</p>
   ${searchForm()}
 </section>`;
@@ -242,7 +242,7 @@ pnpm typecheck    # tsc --noEmit
 
 <section class="center">
   <h2>See how yours <i>scores</i>.</h2>
-  <p class="lede" style="margin:18px 0 24px">Instructions are worth 27 of the 100 marks, and the median
+  <p class="lede">Instructions are worth 27 of the 100 marks, and the median
     repository gets 39% of them.</p>
   ${searchForm()}
 </section>`;

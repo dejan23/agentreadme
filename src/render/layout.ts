@@ -104,7 +104,7 @@ section+section{border-top:1px solid var(--rule)}
 /* The one centred moment: the closing call to action. Everything else stays
    left aligned. */
 .center{text-align:center}
-.center .lede{margin-left:auto;margin-right:auto;max-width:52ch}
+.center .lede{margin:18px auto 24px;max-width:52ch}
 .center .search{margin-left:auto;margin-right:auto}
 .center h2{max-width:22ch;margin-left:auto;margin-right:auto}
 .doc{max-width:68ch}

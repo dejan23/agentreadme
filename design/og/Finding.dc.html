@@ -1,0 +1,53 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap">
+  <style>
+    body { margin: 0; }
+    a { color: #D62E00; } a:hover { color: #FF3D00; }
+    .og { width: 1200px; height: 630px; background: #FFFFFF; padding: 60px;
+          box-sizing: border-box; display: flex; flex-direction: column;
+          font-family: Archivo, "Helvetica Neue", Arial, sans-serif; color: #0A0A0A; }
+    .mono { font-family: "JetBrains Mono", ui-monospace, Menlo, monospace; }
+  </style>
+</helmet>
+
+<div class="og">
+
+  <div style="display: flex; align-items: baseline; gap: 16px;">
+    <div style="font-size: 26px; font-weight: 800; letter-spacing: -0.02em;">agent<span style="color: #FF3D00;">readme</span></div>
+    <div class="mono" style="margin-left: auto; font-size: 22px; color: #8A8A8A; letter-spacing: 0.04em;">THE FINDING</div>
+  </div>
+
+  <div style="height: 1px; background: #E5E5E5; margin: 22px 0 0;"></div>
+
+  <div style="display: flex; align-items: center; gap: 48px; flex-grow: 1;">
+    <div style="font-size: 300px; font-weight: 800; letter-spacing: -0.06em; line-height: 0.78; flex-shrink: 0;">62</div>
+    <div style="min-width: 0;">
+      <div style="font-size: 38px; font-weight: 600; line-height: 1.22; letter-spacing: -0.015em;">
+        median agent-readiness score across the 851 most-starred repos on GitHub
+      </div>
+      <div style="height: 1px; background: #E5E5E5; margin: 26px 0;"></div>
+      <div style="font-size: 34px; font-weight: 800; color: #D62E00; line-height: 1.2; letter-spacing: -0.02em;">
+        37% have no test command an agent can find
+      </div>
+    </div>
+  </div>
+
+  <div style="padding-top: 24px; border-top: 1px solid #E5E5E5; font-size: 27px; color: #525252;">
+    Most agent failures are a property of the repository, not the model.
+  </div>
+
+</div>
+</x-dc>
+<script data-dc-script data-props='{"$preview":{"width":1200,"height":630}}'>
+class Component extends DCLogic {}
+</script>
+</body>
+</html>

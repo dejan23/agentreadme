@@ -1,0 +1,92 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap">
+  <style>
+    body { margin: 0; }
+    a { color: #D62E00; } a:hover { color: #FF3D00; }
+    .og { width: 1200px; height: 630px; background: #FFFFFF; padding: 60px;
+          box-sizing: border-box; display: flex; flex-direction: column;
+          font-family: Archivo, "Helvetica Neue", Arial, sans-serif; color: #0A0A0A; }
+    .mono { font-family: "JetBrains Mono", ui-monospace, Menlo, monospace; }
+    .barrow { display: grid; grid-template-columns: 268px minmax(0, 1fr) 96px;
+              gap: 18px; align-items: center; }
+  </style>
+</helmet>
+
+<div class="og">
+
+  <div style="display: flex; align-items: baseline; gap: 16px;">
+    <div style="font-size: 26px; font-weight: 800; letter-spacing: -0.02em;">agent<span style="color: #FF3D00;">readme</span></div>
+    <div class="mono" style="margin-left: auto; font-size: 22px; color: #8A8A8A; letter-spacing: 0.04em;">AGENT READINESS</div>
+  </div>
+
+  <div style="height: 1px; background: #E5E5E5; margin: 22px 0 30px;"></div>
+
+  <div style="display: flex; align-items: flex-end; gap: 40px;">
+    <div style="min-width: 0; flex-grow: 1;">
+      <div style="font-size: 62px; font-weight: 800; letter-spacing: -0.03em; line-height: 1;
+                  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+        <span style="color: #8A8A8A;">honojs/</span>hono
+      </div>
+    </div>
+    <div style="display: flex; align-items: baseline; gap: 12px; flex-shrink: 0;">
+      <div style="font-size: 132px; font-weight: 800; letter-spacing: -0.05em; line-height: 0.82;">72</div>
+      <div class="mono" style="font-size: 26px; color: #8A8A8A;">/100</div>
+      <div style="font-size: 76px; font-weight: 800; letter-spacing: -0.03em; line-height: 0.82; margin-left: 18px;">B+</div>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 14px; margin-top: 38px;">
+
+    <div class="barrow">
+      <div style="font-size: 28px; font-weight: 600; color: #D62E00;">Instructions</div>
+      <div style="height: 30px; background: #F6F6F6;"><div style="width: 11%; height: 100%; background: #FF3D00;"></div></div>
+      <div class="mono" style="font-size: 26px; text-align: right; color: #D62E00; font-weight: 700;">3/27</div>
+    </div>
+
+    <div class="barrow">
+      <div style="font-size: 28px; font-weight: 600;">Setup</div>
+      <div style="height: 30px; background: #F6F6F6;"><div style="width: 100%; height: 100%; background: #0A0A0A;"></div></div>
+      <div class="mono" style="font-size: 26px; text-align: right; color: #525252;">14/14</div>
+    </div>
+
+    <div class="barrow">
+      <div style="font-size: 28px; font-weight: 600;">Verification loop</div>
+      <div style="height: 30px; background: #F6F6F6;"><div style="width: 96%; height: 100%; background: #0A0A0A;"></div></div>
+      <div class="mono" style="font-size: 26px; text-align: right; color: #525252;">24/25</div>
+    </div>
+
+    <div class="barrow">
+      <div style="font-size: 28px; font-weight: 600;">Context economy</div>
+      <div style="height: 30px; background: #F6F6F6;"><div style="width: 90%; height: 100%; background: #0A0A0A;"></div></div>
+      <div class="mono" style="font-size: 26px; text-align: right; color: #525252;">18/20</div>
+    </div>
+
+    <div class="barrow">
+      <div style="font-size: 28px; font-weight: 600;">Navigability</div>
+      <div style="height: 30px; background: #F6F6F6;"><div style="width: 100%; height: 100%; background: #0A0A0A;"></div></div>
+      <div class="mono" style="font-size: 26px; text-align: right; color: #525252;">10/10</div>
+    </div>
+
+  </div>
+
+  <div style="margin-top: auto; padding-top: 26px; border-top: 1px solid #E5E5E5;
+              font-size: 29px; color: #525252; line-height: 1.3;">
+    <span style="color: #0A0A0A; font-weight: 600;">No AGENTS.md.</span>
+    Every agent that opens this repo starts from nothing.
+  </div>
+
+</div>
+</x-dc>
+<script data-dc-script data-props='{"$preview":{"width":1200,"height":630}}'>
+class Component extends DCLogic {}
+</script>
+</body>
+</html>
