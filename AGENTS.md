@@ -22,8 +22,12 @@ bun run typecheck                    # tsc --noEmit, must pass before commit
 bun run test                         # vitest
 bun run scripts/probe.ts owner/repo  # grade one repo, print the scorecard
 bun run scripts/seed.ts --limit 1000 # crawl top repos, write seed/seed.sql
-npx wrangler deploy                  # production
+npx wrangler deploy                  # production, from this machine
 ```
+
+Pushing to `main` deploys through `.github/workflows/deploy.yml`, which runs
+typecheck and tests first, applies D1 migrations, then smoke-tests the live
+URLs. Deploying by hand is for emergencies; otherwise merge and let CI do it.
 
 `probe.ts` is the fastest way to check a rules change. Run it against a repo you
 know before and after.

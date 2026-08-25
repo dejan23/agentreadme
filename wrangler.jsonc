@@ -2,6 +2,7 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "agentreadme",
   "main": "src/index.ts",
+  "account_id": "a3687f54c4b2d94aecdb0b15c821b842",
   "compatibility_date": "2026-08-01",
   "compatibility_flags": ["nodejs_compat"],
   "observability": { "enabled": true },
@@ -9,12 +10,9 @@
     {
       "binding": "DB",
       "database_name": "agentreadme",
-      "database_id": "REPLACE_AFTER_CREATE",
+      "database_id": "6841336b-251e-405c-a9d8-58ec87ac2f56",
       "migrations_dir": "migrations"
     }
   ],
-  "routes": [
-    { "pattern": "agentreadme.com", "custom_domain": true },
-    { "pattern": "www.agentreadme.com", "custom_domain": true }
-  ]
+  "workers_dev": true
 }
