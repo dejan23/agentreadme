@@ -1,0 +1,6 @@
+INSERT OR REPLACE INTO reports (slug,owner,repo,score,grade,stars,language,description,pct_instructions,pct_setup,pct_verification,pct_context,pct_navigation,has_agents_md,has_any_agent_doc,has_test_command,file_count,is_software,graded_at) VALUES
+('sindresorhus/awesome','sindresorhus','awesome',32,'D',499858,NULL,'😎 Awesome lists about all kinds of interesting topics [NOTE: Pull requests are temporarily disabled until I have a chance to catch up with the existing ones]',7,0,16,85,80,0,0,0,23,0,'2026-08-25T17:24:39.006Z'),
+('public-apis/public-apis','public-apis','public-apis',48,'C+',470337,'Python','A collective list of free APIs',0,43,48,100,80,0,0,0,23,1,'2026-08-25T17:24:39.385Z'),
+('ebookfoundation/free-programming-books','EbookFoundation','free-programming-books',44,'C',395203,'Python',':books: Freely available programming books',7,43,16,100,100,0,0,0,233,0,'2026-08-25T17:24:39.675Z'),
+('freecodecamp/freecodecamp','freeCodeCamp','freeCodeCamp',69,'B',454586,'TypeScript','freeCodeCamp.org''s open-source codebase and curriculum. Learn math, programming, and computer science for free.',67,80,76,45,80,0,1,1,19418,1,'2026-08-25T17:24:39.976Z'),
+('openclaw/openclaw','openclaw','openclaw',68,'B',387574,'TypeScript','Your own personal AI assistant. Any OS. Any Platform. The lobster way. 🦞 ',74,90,60,45,70,1,1,0,33695,1,'2026-08-25T17:24:41.032Z');

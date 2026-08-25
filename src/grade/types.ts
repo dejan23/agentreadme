@@ -43,6 +43,9 @@ export interface Report {
   truncatedTree: boolean;
   fileCount: number;
   gradedAt: string;
+  /** False for awesome-lists, books, and tutorial repos. Keeps them off the leaderboard. */
+  isSoftware: boolean;
+  shapeReason: string;
 }
 
 export interface TreeEntry {

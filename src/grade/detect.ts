@@ -176,3 +176,53 @@ export function mentionsEnv(s: RepoSnapshot): boolean {
   if (/\b(environment variable|process\.env|os\.environ|os\.getenv|dotenv|\.env\b)/i.test(rm)) return true;
   return existsAnywhere(s, /(^|\/)\.env($|\.)/i);
 }
+
+/** A dependency manifest is the strongest single signal of installable software. */
+const MANIFESTS = [
+  "package.json", "deno.json", "deno.jsonc", "pyproject.toml", "setup.py", "setup.cfg",
+  "requirements.txt", "cargo.toml", "go.mod", "pom.xml", "build.gradle", "build.gradle.kts",
+  "gemfile", "composer.json", "mix.exs", "pubspec.yaml", "package.swift", "cmakelists.txt",
+  "build.sbt", "project.clj", "dune-project", "rebar.config", "nimble.toml", "meson.build",
+];
+
+export interface ProjectShape {
+  isSoftware: boolean;
+  /** Why we decided, shown to the reader rather than hidden. */
+  reason: string;
+  sourceCount: number;
+  docRatio: number;
+}
+
+/**
+ * Distinguishes real software from awesome-lists, tutorials, and book repos.
+ *
+ * The most-starred repositories on GitHub are overwhelmingly curated link
+ * collections, and scoring them on "can an agent install and test this" is
+ * meaningless. They are graded but kept off the leaderboard.
+ */
+export function projectShape(s: RepoSnapshot): ProjectShape {
+  const all = blobs(s);
+  const sources = all.filter((e) => isSource(e.path));
+  const docs = all.filter((e) => /\.(md|mdx|markdown|rst|txt)$/i.test(e.path));
+  const docRatio = all.length > 0 ? docs.length / all.length : 0;
+  const manifest = hasAny(s, MANIFESTS);
+
+  if (manifest && sources.length >= 3) {
+    return { isSoftware: true, reason: `${manifest} plus ${sources.length} source files`, sourceCount: sources.length, docRatio };
+  }
+  if (sources.length >= 20) {
+    return { isSoftware: true, reason: `${sources.length} source files`, sourceCount: sources.length, docRatio };
+  }
+  if (docRatio > 0.6 && sources.length < 10) {
+    return {
+      isSoftware: false,
+      reason: `${Math.round(docRatio * 100)}% of files are prose and there are only ${sources.length} source files, so this reads as a documentation or list repository`,
+      sourceCount: sources.length,
+      docRatio,
+    };
+  }
+  if (sources.length < 3 && !manifest) {
+    return { isSoftware: false, reason: `no dependency manifest and only ${sources.length} source files`, sourceCount: sources.length, docRatio };
+  }
+  return { isSoftware: true, reason: `${sources.length} source files`, sourceCount: sources.length, docRatio };
+}

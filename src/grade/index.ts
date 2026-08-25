@@ -3,7 +3,7 @@ import { gradeInstructions } from "./rules-instructions";
 import { gradeSetup } from "./rules-setup";
 import { gradeVerification } from "./rules-verification";
 import { gradeContext, gradeNavigation } from "./rules-context";
-import { blobs } from "./detect";
+import { blobs, projectShape } from "./detect";
 
 export function letterGrade(score: number): string {
   if (score >= 93) return "A+";
@@ -45,6 +45,8 @@ export function grade(s: RepoSnapshot): Report {
     })
     .slice(0, 6);
 
+  const shape = projectShape(s);
+
   return {
     owner: s.meta.owner,
     repo: s.meta.repo,
@@ -60,5 +62,7 @@ export function grade(s: RepoSnapshot): Report {
     truncatedTree: s.truncatedTree,
     fileCount: blobs(s).length,
     gradedAt: new Date().toISOString(),
+    isSoftware: shape.isSoftware,
+    shapeReason: shape.reason,
   };
 }
