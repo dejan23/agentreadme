@@ -3,15 +3,19 @@ import { SITE, attr, esc, figure, layout } from "./layout";
 import { searchForm } from "./page";
 
 const EXTRA_CSS = `
-.filters{display:flex;gap:0;flex-wrap:wrap;margin:0 0 10px;border-bottom:1px solid var(--rule)}
+/* One control bar: sort on the left, find on the right, languages beneath.
+   Three stacked bands of controls buried the table. */
+.lbbar{display:flex;align-items:flex-end;gap:20px;flex-wrap:wrap;
+  border-bottom:1px solid var(--rule);margin:0 0 12px}
+.filters{display:flex;gap:0;flex-wrap:wrap}
 .filters a{padding:9px 16px 10px;font-size:15.5px;font-weight:600;text-decoration:none;
   color:var(--ink-3);border-bottom:3px solid transparent;margin-bottom:-1px}
 .filters a:hover{color:var(--ink)}
 .filters a.on{color:var(--ink);border-bottom-color:var(--acc)}
-.langs{display:flex;gap:16px;flex-wrap:wrap;margin:0 0 24px;font-size:14.5px}
+.langs{display:flex;gap:15px;flex-wrap:wrap;margin:0 0 22px;font-size:14px}
 .langs a{text-decoration:none;color:var(--ink-3)}
 .langs a:hover{color:var(--acc-t)}
-.langs a.on{color:var(--ink);font-weight:600}
+.langs a.on{color:var(--ink);font-weight:700}
 .reg{width:100%;border-collapse:collapse;font-size:16px}
 .reg th{text-align:left;font-weight:700;font-size:12px;letter-spacing:.05em;text-transform:uppercase;
   color:var(--ink-3);padding:0 10px 10px;border-bottom:2px solid var(--ink)}
@@ -29,12 +33,15 @@ const EXTRA_CSS = `
 .reg .gr{font-family:var(--mono);font-size:18px;font-weight:700;width:46px;text-align:right}
 .reg .gr.bad{color:var(--acc-t)}
 .scroll{overflow-x:auto}
-.find{display:flex;border:2px solid var(--ink);max-width:420px;margin:0 0 18px}
-.find input{flex:1;min-width:0;border:0;padding:11px 13px;font-family:var(--mono);
-  font-size:14px;background:transparent;color:var(--ink)}
-.find input:focus{outline:none;background:var(--track)}
-.find .n{flex:none;padding:11px 13px;font-family:var(--mono);font-size:12.5px;color:var(--ink-3);
-  align-self:center}
+.find{display:flex;align-items:center;border:1px solid var(--rule);background:#fff;
+  margin:0 0 8px auto;width:270px;max-width:100%}
+.find:focus-within{border-color:var(--ink)}
+.find input{flex:1;min-width:0;border:0;padding:8px 11px;font-family:var(--mono);
+  font-size:13.5px;background:transparent;color:var(--ink)}
+.find input:focus{outline:none}
+.find input::placeholder{color:var(--ink-3)}
+.find .n{flex:none;padding:0 11px 0 0;font-family:var(--mono);font-size:12px;color:var(--ink-3)}
+@media (max-width:640px){.find{margin-left:0;width:100%}}
 .miss{padding:26px 10px;color:var(--ink-2);font-size:16px}
 .miss a{font-weight:600}
 #lb{transition:opacity .12s ease-out}
@@ -171,10 +178,17 @@ export function leaderboardPage(opts: {
 </section>
 
 <section style="padding-top:44px"><div id="lb">
-  <div class="filters">
-    ${tab("best", "Top of the class")}
-    ${tab("worst", "Bottom of the class")}
-    ${tab("popular", "Most starred")}
+  <div class="lbbar">
+    <div class="filters">
+      ${tab("best", "Top of the class")}
+      ${tab("worst", "Bottom of the class")}
+      ${tab("popular", "Most starred")}
+    </div>
+    <div class="find">
+      <input id="lbq" type="search" placeholder="Filter this list"
+        aria-label="Filter the class list" spellcheck="false" autocapitalize="off" autocorrect="off">
+      <span class="n" id="lbn"></span>
+    </div>
   </div>
   ${
     langs.length
@@ -184,11 +198,6 @@ export function leaderboardPage(opts: {
   </div>`
       : ""
   }
-  <div class="find">
-    <input id="lbq" type="search" placeholder="Filter by name, owner, or description"
-      aria-label="Filter the class list" spellcheck="false" autocapitalize="off" autocorrect="off">
-    <span class="n" id="lbn"></span>
-  </div>
   <div class="miss" id="lbmiss" hidden></div>
   ${
     rows.length
