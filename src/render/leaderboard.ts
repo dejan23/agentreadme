@@ -124,7 +124,7 @@ export function leaderboardPage(opts: {
   }
 </section>
 
-<section>
+<section class="center">
   <h2>Mark <i>yours</i>.</h2>
   <p class="lede" style="margin:18px 0 24px">Two API calls. Nothing cloned, nothing executed, no account.</p>
   ${searchForm()}

@@ -105,7 +105,7 @@ ${
     : ""
 }
 
-<section>
+<section class="center">
   <h2>Try it on the repo you have <i>open right now</i>.</h2>
   <p class="lede" style="margin:18px 0 24px">Two API calls. Nothing cloned, nothing executed, no account.
     The marking scheme is <a href="/about">published in full</a> and every deduction cites its file.</p>
@@ -125,17 +125,15 @@ ${
 export function aboutPage(): string {
   const body = `
 <section style="padding-top:56px">
-  <h2>The marking scheme</h2>
-  <p class="lede" style="margin:20px 0 0">Every mark traces back to something in the repository. No model
+  <h1>The marking <i>scheme</i></h1>
+  <p class="lede" style="margin:22px 0 0">Every mark traces back to something in the repository. No model
     judges your code and there is no discretion in the number. The whole scheme is checks against
     files, and you can read the source.</p>
 </section>
 
-<section class="two">
-  <div>
-    <h2 style="font-size:30px">What is marked</h2>
-  </div>
-  <div style="color:var(--ink-2);font-size:16.5px">
+<section>
+  <h2>What is marked</h2>
+  <div class="cols" style="margin-top:22px;color:var(--ink-2);font-size:16.5px">
     <p><b style="color:var(--ink)">Instructions, 27 marks.</b> Whether an AGENTS.md, CLAUDE.md, or
     equivalent exists, and whether it does anything useful. A file that never names a build or test
     command scores badly however long it is.</p>
@@ -152,9 +150,9 @@ export function aboutPage(): string {
   </div>
 </section>
 
-<section class="two">
-  <div><h2 style="font-size:30px">The rules we apply to <i>ourselves</i></h2></div>
-  <div style="color:var(--ink-2);font-size:16.5px">
+<section>
+  <h2>The rules we apply to <i>ourselves</i></h2>
+  <div class="cols" style="margin-top:22px;color:var(--ink-2);font-size:16.5px">
     <p><b style="color:var(--ink)">Checks that do not apply are not counted.</b> A library has no
     environment to configure and no reason to ship a Dockerfile. Those are marked not applicable and
     removed from the total rather than scored as zero, so nothing is punished for being what it is.</p>
@@ -169,6 +167,13 @@ export function aboutPage(): string {
     detection misses things, particularly outside JavaScript and Python. It is open source, so the
     useful response is a pull request adding the case we got wrong.</p>
   </div>
+</section>
+
+<section>
+  <h2>Read it as <i>plain text</i></h2>
+  <p class="lede" style="margin:16px 0 20px">Any report is available as text, so an agent can read its
+    own scorecard without a browser.</p>
+  <pre><code>$ curl agentreadme.com/honojs/hono.txt</code></pre>
 </section>`;
 
   return layout({
@@ -191,9 +196,10 @@ export function agentsMdPage(): string {
 
 <section class="two">
   <div>
-    <h2 style="font-size:30px">What belongs in it</h2>
+    <h2 style="font-size:34px">What belongs in it</h2>
     <p class="lede" style="font-size:17px;margin:16px 0 0">The test that matters is whether a capable
-      stranger could make a small change and verify it using only this file.</p>
+      stranger could make a small change and verify it using only this file. Commands first,
+      conventions second, none of the persuasion a README carries.</p>
   </div>
   <div><pre><code># AGENTS.md
 
@@ -219,9 +225,9 @@ pnpm typecheck    # tsc --noEmit
   the schema. Edit the schema.</code></pre></div>
 </section>
 
-<section class="two">
-  <div><h2 style="font-size:30px">What makes one <i>bad</i></h2></div>
-  <div style="color:var(--ink-2);font-size:16.5px">
+<section>
+  <h2>What makes one <i>bad</i></h2>
+  <div class="cols" style="margin-top:22px;color:var(--ink-2);font-size:16.5px">
     <p><b style="color:var(--ink)">Too short.</b> Three lines saying "this is a TypeScript project, write
     clean code" changes nothing about what an agent does.</p>
     <p><b style="color:var(--ink)">Too long.</b> Twenty thousand characters of philosophy loads on every
@@ -234,7 +240,7 @@ pnpm typecheck    # tsc --noEmit
   </div>
 </section>
 
-<section>
+<section class="center">
   <h2>See how yours <i>scores</i>.</h2>
   <p class="lede" style="margin:18px 0 24px">Instructions are worth 27 of the 100 marks, and the median
     repository gets 39% of them.</p>

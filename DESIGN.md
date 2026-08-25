@@ -76,7 +76,14 @@ Rhythm down the page: hero, dark band, two-column explainer, dark band or code,
 closing call to action at display size. Sections divide with a 1px rule, never
 with a shadow or a card.
 
-No cards nested in cards. No three-column icon grids. No centered body text.
+No cards nested in cards. No three-column icon grids. No centered body text,
+with one exception: the closing call to action on each page is centred, and so
+is the footer. Those are the two moments where the page stops arguing and asks
+for something, and centring marks the change of mode.
+
+A text section is a full-width heading over a measured column, or a two-up text
+grid. Never a 50/50 split with a short heading on one side, which leaves half
+the page empty.
 
 ## Spacing
 

@@ -3,6 +3,7 @@ import { GitHubError, snapshot } from "./github";
 import { grade } from "./grade";
 import { errorBadge, gradeBadge } from "./render/badge";
 import { errorPage, reportPage } from "./render/page";
+import { reportText } from "./render/text";
 import { aboutPage, agentsMdPage, homePage, notFoundPage } from "./render/static-pages";
 import { leaderboardPage } from "./render/leaderboard";
 import { type Sort, languageMedians, languages, leaderboard, leaderboardStats, saveReport } from "./db";
@@ -131,12 +132,22 @@ app.get("/badge/:owner/:repo", async (c) => {
 });
 
 app.get("/:owner/:repo", async (c) => {
-  const parsed = parseRepo(`${c.req.param("owner")}/${c.req.param("repo")}`);
-  if (!parsed) return c.html(notFoundPage(), 404);
+  const raw = c.req.param("repo");
+  // "owner/repo.txt" serves the plain text report, so an agent can read its own
+  // scorecard with one curl. Hono will not split the suffix, so do it here.
+  const wantsText = raw.endsWith(".txt");
+  const parsed = parseRepo(`${c.req.param("owner")}/${wantsText ? raw.slice(0, -4) : raw}`);
+  if (!parsed) return wantsText ? c.text("Not a GitHub repository.\n", 400) : c.html(notFoundPage(), 404);
 
   return cached(c, 21600, async () => {
     try {
       const report = grade(await snapshot(parsed.owner, parsed.repo, c.env.GITHUB_TOKEN));
+      if (wantsText) {
+        return new Response(reportText(report), {
+          status: 200,
+          headers: { "Content-Type": "text/plain; charset=utf-8" },
+        });
+      }
       // The leaderboard grows from real traffic, not just the seed crawl.
       if (c.env.DB) {
         c.executionCtx.waitUntil(
@@ -150,6 +161,9 @@ app.get("/:owner/:repo", async (c) => {
       const err = e instanceof GitHubError ? e : null;
       const msg = err?.message ?? "Something went wrong grading that repository.";
       const status = err?.status === 404 ? 404 : err?.status === 429 ? 429 : 500;
+      if (wantsText) {
+        return new Response(`${msg}\n`, { status, headers: { "Content-Type": "text/plain; charset=utf-8" } });
+      }
       return new Response(errorPage(msg, status, `${parsed.owner}/${parsed.repo}`), {
         status,
         headers: HTML,
