@@ -10,7 +10,7 @@
 import { mkdirSync, appendFileSync, existsSync, readFileSync, writeFileSync } from "node:fs";
 import { snapshot } from "../src/github";
 import { grade } from "../src/grade";
-import { toRow, upsertValues, type Row } from "../src/db";
+import { toRow, type Row } from "../src/db";
 
 /** Reads GITHUB_TOKEN from the environment, falling back to .dev.vars. */
 function loadToken(): string | undefined {
@@ -172,16 +172,20 @@ async function main() {
 
   // --- Emit SQL ---
   const rows = [...done.values()];
+  // Deliberately without report_json: the full reports would add ~8MB to the
+  // file, and a repo page fills its own cache the first time anyone opens it.
+  // The column list and the values below must stay in step.
   const cols = [
     "slug", "owner", "repo", "score", "grade", "stars", "language", "description",
     "pct_instructions", "pct_setup", "pct_verification", "pct_context", "pct_navigation",
     "has_agents_md", "has_any_agent_doc", "has_test_command", "file_count", "is_software", "graded_at",
-  ];
+  ] as const;
+
   const chunks: string[] = [];
   for (let i = 0; i < rows.length; i += 200) {
     const values = rows
       .slice(i, i + 200)
-      .map((r) => `(${upsertValues(r).map(sqlLiteral).join(",")})`)
+      .map((r) => `(${cols.map((c) => sqlLiteral((r as any)[c])).join(",")})`)
       .join(",\n");
     chunks.push(`INSERT OR REPLACE INTO reports (${cols.join(",")}) VALUES\n${values};`);
   }

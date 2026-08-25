@@ -41,15 +41,15 @@ since asking whether an agent can install a list of links means nothing.
 
 ## Findings
 
-Across the 851 most-starred software repositories on GitHub:
+Across the 864 most-starred software repositories on GitHub:
 
-- Median score **62/100**
-- **37%** have no test command an agent can find
-- **33%** ship an `AGENTS.md`
+- Median score **61/100**
+- **38%** have no test command an agent can find
+- **32%** ship an `AGENTS.md`
 - Instructions is the weakest category by a distance, averaging **39%**
 
-Median by language: TypeScript 72, Go 70, Rust 64, JavaScript 61, Python 60,
-Java 43, C++ 42, C 38.
+Median by language: TypeScript 71, Go 70, Rust 63, Python 60, JavaScript 60,
+Java 44, C++ 42, C 38.
 
 ## The badge
 

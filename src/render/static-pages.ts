@@ -4,8 +4,8 @@ import { searchForm } from "./page";
 
 /** Real measured medians, used when the database has nothing yet. */
 const FALLBACK_LANGS: Array<[string, number]> = [
-  ["TypeScript", 72], ["Go", 70], ["Rust", 64], ["JavaScript", 61],
-  ["Python", 60], ["Java", 43], ["C++", 42], ["C", 38],
+  ["TypeScript", 71], ["Go", 70], ["Rust", 63], ["Python", 60],
+  ["JavaScript", 60], ["Java", 44], ["C++", 42], ["C", 38],
 ];
 
 /** Mirrors the real output of `curl agentreadme.com/honojs/hono.txt`. */
@@ -48,10 +48,10 @@ const SCHEME: Array<[string, string, string]> = [
 ];
 
 export function homePage(recent?: Row[], stats?: Stats, langs?: Array<[string, number]>): string {
-  const total = stats?.total ?? 851;
-  const median = stats?.median ?? 62;
-  const noTest = stats?.total ? Math.round(((stats.total - stats.withTestCommand) / stats.total) * 100) : 37;
-  const withMd = stats?.total ? Math.round((stats.withAgentsMd / stats.total) * 100) : 33;
+  const total = stats?.total ?? 865;
+  const median = stats?.median ?? 61;
+  const noTest = stats?.total ? Math.round(((stats.total - stats.withTestCommand) / stats.total) * 100) : 38;
+  const withMd = stats?.total ? Math.round((stats.withAgentsMd / stats.total) * 100) : 32;
   const chart = (langs?.length ? langs : FALLBACK_LANGS).slice(0, 10);
   const worst = Math.min(...chart.map(([, v]) => v));
 
