@@ -223,13 +223,15 @@ export function projectShape(s: RepoSnapshot): ProjectShape {
   // file counts alone call them software. What they never have is engineering
   // around that code: no lockfile, no CI, no tests.
   const named = `${s.meta.repo} ${s.meta.description ?? ""}`;
-  if (CONTENT_NAME.test(named) && (!hasEngineering(s) || sources.length < 10)) {
+  // A dependency manifest is the cleanest divider here: curated lists and
+  // tutorials do not ship one, real projects do. Counting source files instead
+  // punished small applications that happen to carry a content word in the name.
+  if (CONTENT_NAME.test(named) && !manifest && (!hasEngineering(s) || sources.length < 20)) {
     return {
       isSoftware: false,
-      reason:
-        sources.length < 10
-          ? `it presents as a list, tutorial, or reference and holds only ${sources.length} source files`
-          : "it presents as a list, tutorial, or reference, and carries no lockfile, CI, or tests",
+      reason: hasEngineering(s)
+        ? `it presents as a list, tutorial, or reference, ships no dependency manifest, and holds only ${sources.length} source files`
+        : "it presents as a list, tutorial, or reference and carries no manifest, lockfile, CI, or tests",
       sourceCount: sources.length,
       docRatio,
     };
