@@ -1,4 +1,5 @@
 import type { Category, Check, Report } from "../grade/types";
+import type { Row } from "../db";
 import { SITE, attr, barRow, esc, figure, layout } from "./layout";
 
 /** Category letter from its percentage. Same curve as the overall grade. */
@@ -67,7 +68,7 @@ function categoryBlock(cat: Category, open: boolean): string {
 </details>`;
 }
 
-export function reportPage(r: Report): string {
+export function reportPage(r: Report, related: Row[] = []): string {
   const slug = `${r.owner}/${r.repo}`;
   const md = `[![agent ready](https://${SITE}/badge/${slug}.svg)](https://${SITE}/${slug})`;
 
@@ -149,15 +150,55 @@ ${
   <div><pre><code>${esc(md)}</code></pre></div>
 </section>
 
+${
+  related.length
+    ? `<section>
+  <p class="kicker">Other ${esc(r.language ?? "")} repositories, marked</p>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:0 30px">
+    ${related
+      .map(
+        (x) => `<a href="/${x.owner}/${x.repo}" style="display:flex;align-items:baseline;gap:10px;
+      padding:11px 0;border-bottom:1px solid var(--rule);text-decoration:none">
+      <span style="font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(x.owner)}/${esc(x.repo)}</span>
+      <span style="margin-left:auto;font-family:var(--mono);font-size:13px;color:var(--ink-3)">${x.score}</span>
+      <span style="font-weight:700;font-family:var(--mono);font-size:14px;${x.score < 55 ? "color:var(--acc-t)" : ""}">${esc(x.grade)}</span>
+    </a>`,
+      )
+      .join("")}
+  </div>
+  <p style="margin-top:16px"><a href="/leaderboard?sort=best&lang=${encodeURIComponent(r.language ?? "")}">All ${esc(r.language ?? "")} repositories</a></p>
+</section>`
+    : ""
+}
+
 ${r.truncatedTree ? `<p class="note">This repository is large enough that GitHub truncated the file listing, so the file-level checks ran on a sample.</p>` : ""}
 `;
 
   return layout({
     title: `${slug} scores ${r.score}/100 for AI agents · ${SITE}`,
-    description: `${slug} was marked ${r.score}/100 (${r.grade}) on agent readiness. ${headline(r)} Full breakdown across instructions, setup, verification, context economy, and navigability.`,
+    description: `${slug} scores ${r.score}/100 (${r.grade}) for AI coding agents. ${headline(r)} See the full breakdown and what to fix first.`,
     canonical: `/${slug}`,
     body,
     noindex: !r.isSoftware,
+    jsonLd: {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "Class list", item: `https://${SITE}/leaderboard` },
+            { "@type": "ListItem", position: 2, name: slug, item: `https://${SITE}/${slug}` },
+          ],
+        },
+        {
+          "@type": "SoftwareSourceCode",
+          name: slug,
+          codeRepository: `https://github.com/${slug}`,
+          ...(r.language ? { programmingLanguage: r.language } : {}),
+          ...(r.description ? { description: r.description } : {}),
+        },
+      ],
+    },
   });
 }
 

@@ -220,10 +220,19 @@ export function leaderboardPage(opts: {
     title: language
       ? `${language} repositories ranked by AI agent readiness · ${SITE}`
       : `Which repositories are ready for AI coding agents? · ${SITE}`,
-    description: `${stats.total.toLocaleString()} popular open source repositories marked on how well AI coding agents can work in them. The median scores ${stats.median} out of 100, and ${noTest}% have no test command an agent can find.`,
+    description: `${stats.total.toLocaleString()} popular open source repos ranked on AI agent readiness. Median ${stats.median}/100, and ${noTest}% have no test command an agent can find.`,
     canonical: language ? `/leaderboard?sort=${sort}&lang=${encodeURIComponent(language)}` : `/leaderboard?sort=${sort}`,
     body,
     extraCss: EXTRA_CSS,
     extraJs: FILTER_JS,
+    jsonLd: {
+      "@context": "https://schema.org",
+      "@type": "Dataset",
+      name: "Agent readiness of the most-starred repositories on GitHub",
+      description: `Agent-readiness marks for ${stats.total} popular open source repositories, scored on instructions, setup, verification, context economy, and navigability.`,
+      url: `https://${SITE}/leaderboard`,
+      license: "https://opensource.org/licenses/MIT",
+      creator: { "@type": "Organization", name: SITE },
+    },
   });
 }

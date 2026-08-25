@@ -131,8 +131,19 @@ ${
   return layout({
     title: `${SITE} · Is your repository ready for AI coding agents?`,
     description:
-      "Mark any public GitHub repository on how well AI coding agents can work in it. Checks agent instructions, setup, the verification loop, context economy, and navigability, then says what to fix first.",
+      "Grade any public GitHub repo on how well AI coding agents can work in it. Instructions, setup, tests, context economy. See what to fix first.",
     canonical: "/",
+    jsonLd: {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      name: SITE,
+      url: `https://${SITE}`,
+      potentialAction: {
+        "@type": "SearchAction",
+        target: { "@type": "EntryPoint", urlTemplate: `https://${SITE}/analyze?repo={search_term_string}` },
+        "query-input": "required name=search_term_string",
+      },
+    },
     body,
     announce: `We marked the ${total.toLocaleString()} most-starred repos on GitHub. The median scored ${median}. <a href="/leaderboard">Read the findings</a>`,
   });
@@ -266,8 +277,15 @@ pnpm typecheck    # tsc --noEmit
   return layout({
     title: `What is AGENTS.md, and how do you write a good one? · ${SITE}`,
     description:
-      "AGENTS.md tells an AI coding agent how to work in your repository. What belongs in it, what makes one useless, and how it differs from a README.",
+      "AGENTS.md tells an AI coding agent how to work in your repo. What belongs in it, what makes one useless, and how it differs from a README.",
     canonical: "/what-is-agents-md",
+    jsonLd: {
+      "@context": "https://schema.org",
+      "@type": "TechArticle",
+      headline: "What is AGENTS.md, and how do you write a good one?",
+      about: "AGENTS.md",
+      url: `https://${SITE}/what-is-agents-md`,
+    },
     body,
   });
 }

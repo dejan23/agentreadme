@@ -8,7 +8,7 @@ import { reportText } from "./render/text";
 import { aboutPage, agentsMdPage, homePage, notFoundPage } from "./render/static-pages";
 import { leaderboardPage } from "./render/leaderboard";
 import { privacyPage, termsPage } from "./render/legal";
-import { type Sort, languageMedians, languages, leaderboard, leaderboardStats, saveReport, storedReport } from "./db";
+import { type Row, type Sort, allSlugs, languageMedians, languages, leaderboard, leaderboardStats, relatedRepos, saveReport, storedReport } from "./db";
 
 export interface Env {
   GITHUB_TOKEN?: string;
@@ -125,6 +125,38 @@ app.get("/favicon.svg", (c) =>
   ),
 );
 
+/**
+ * robots.txt advertises this, so it has to exist. Without it the marked
+ * repositories past the first hundred are orphans that nothing links to and
+ * no crawler ever finds.
+ */
+app.get("/sitemap.xml", async (c) => {
+  const base = "https://agentreadme.com";
+  const statics = ["/", "/leaderboard", "/about", "/what-is-agents-md", "/privacy", "/terms"];
+  const langs = c.env.DB ? await languages(c.env.DB).catch(() => []) : [];
+  const repos = c.env.DB ? await allSlugs(c.env.DB).catch(() => []) : [];
+
+  // A raw & inside a query string makes the whole document invalid XML, and a
+  // sitemap that fails to parse is rejected wholesale rather than partially.
+  const xml = (v: string) =>
+    v.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
+
+  const url = (loc: string, lastmod?: string, priority?: string) =>
+    `<url><loc>${xml(base + loc)}</loc>${lastmod ? `<lastmod>${xml(lastmod.slice(0, 10))}</lastmod>` : ""}${priority ? `<priority>${priority}</priority>` : ""}</url>`;
+
+  const body = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${statics.map((p) => url(p, undefined, p === "/" ? "1.0" : "0.8")).join("\n")}
+${langs.map((l) => url(`/leaderboard?sort=best&lang=${encodeURIComponent(l.language)}`, undefined, "0.6")).join("\n")}
+${repos.map((r) => url(`/${r.slug}`, r.graded_at, "0.5")).join("\n")}
+</urlset>`;
+
+  return c.body(body, 200, {
+    "Content-Type": "application/xml; charset=utf-8",
+    "Cache-Control": "public, max-age=3600, s-maxage=3600",
+  });
+});
+
 app.get("/robots.txt", (c) =>
   c.text(`User-agent: *\nAllow: /\nSitemap: https://agentreadme.com/sitemap.xml\n`),
 );
@@ -168,20 +200,23 @@ app.get("/:owner/:repo", async (c) => {
   const parsed = parseRepo(`${c.req.param("owner")}/${wantsText ? raw.slice(0, -4) : raw}`);
   if (!parsed) return wantsText ? c.text("Not a GitHub repository.\n", 400) : c.html(notFoundPage(), 404);
 
-  const render = (report: Report) =>
+  const render = (report: Report, rel: Row[] = []) =>
     wantsText
       ? new Response(reportText(report), {
           status: 200,
           headers: { "Content-Type": "text/plain; charset=utf-8" },
         })
-      : new Response(reportPage(report), { status: 200, headers: HTML });
+      : new Response(reportPage(report, rel), { status: 200, headers: HTML });
 
   return cached(c, 21600, async () => {
     const db = c.env.DB;
 
+    const related = async (r: Report): Promise<Row[]> =>
+      db && !wantsText ? await relatedRepos(db, r.owner, r.repo, r.language).catch(() => []) : [];
+
     // 1. A recent stored report costs no GitHub call at all.
     const stored = db ? await storedReport(db, parsed.owner, parsed.repo).catch(() => null) : null;
-    if (stored && stored.ageMs < FRESH_MS) return render(stored.report);
+    if (stored && stored.ageMs < FRESH_MS) return render(stored.report, await related(stored.report));
 
     // 2. Otherwise mark it live.
     try {
@@ -193,12 +228,14 @@ app.get("/:owner/:repo", async (c) => {
           }),
         );
       }
-      return render(report);
+      return render(report, await related(report));
     } catch (e) {
       const err = e instanceof GitHubError ? e : null;
 
       // 3. If GitHub refused us, a stale report beats an error page.
-      if (stored && err && (err.status === 429 || err.status >= 500)) return render(stored.report);
+      if (stored && err && (err.status === 429 || err.status >= 500)) {
+        return render(stored.report, await related(stored.report));
+      }
 
       const msg = err?.message ?? "Something went wrong marking that repository.";
       const status = err?.status === 404 ? 404 : err?.status === 429 ? 429 : 500;

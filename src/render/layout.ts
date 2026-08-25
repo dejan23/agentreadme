@@ -189,10 +189,12 @@ export function layout(opts: {
   noindex?: boolean;
   /** Optional announcement strip, used to carry the launch finding. */
   announce?: string;
+  /** Structured data. No rating schemas: self-issued ratings invite a penalty. */
+  jsonLd?: unknown;
   /** Page-specific script, appended after the shared one. */
   extraJs?: string;
 }): string {
-  const { title, description, canonical, body, ogImage, extraCss, noindex, announce, extraJs } = opts;
+  const { title, description, canonical, body, ogImage, extraCss, noindex, announce, extraJs, jsonLd } = opts;
   const url = canonical ? `https://${SITE}${canonical}` : `https://${SITE}`;
   return `<!doctype html>
 <html lang="en"><head>
@@ -214,6 +216,7 @@ ${ogImage ? `<meta property="og:image" content="https://${SITE}${ogImage}">\n<me
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="${FONTS}">
 <style>${CSS}${extraCss ?? ""}</style>
+${jsonLd ? `<script type="application/ld+json">${JSON.stringify(jsonLd).replace(/</g, "\\u003c")}</script>` : ""}
 </head><body>
 ${announce ? `<div class="announce">${announce}</div>` : ""}
 <header class="top"><div class="inner">

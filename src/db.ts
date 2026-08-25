@@ -222,3 +222,40 @@ export async function storedReport(
     return null;
   }
 }
+
+/** Every marked repository, for the sitemap. Cheap: two columns, no report body. */
+export async function allSlugs(
+  db: D1Database,
+  limit = 45000,
+): Promise<Array<{ slug: string; graded_at: string }>> {
+  const { results } = await db
+    .prepare(
+      `SELECT slug, graded_at FROM reports
+       WHERE is_software = 1
+       ORDER BY stars DESC
+       LIMIT ?`,
+    )
+    .bind(limit)
+    .all<{ slug: string; graded_at: string }>();
+  return results ?? [];
+}
+
+/** Other repos in the same language, to link repo pages to each other. */
+export async function relatedRepos(
+  db: D1Database,
+  owner: string,
+  repo: string,
+  language: string | null,
+  limit = 6,
+): Promise<Row[]> {
+  if (!language) return [];
+  const { results } = await db
+    .prepare(
+      `SELECT * FROM reports
+       WHERE language = ? AND is_software = 1 AND slug != ?
+       ORDER BY stars DESC LIMIT ?`,
+    )
+    .bind(language, `${owner}/${repo}`.toLowerCase(), limit)
+    .all<Row>();
+  return results ?? [];
+}
