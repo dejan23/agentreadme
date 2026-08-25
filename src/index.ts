@@ -7,6 +7,7 @@ import { errorPage, reportPage } from "./render/page";
 import { reportText } from "./render/text";
 import { aboutPage, agentsMdPage, homePage, notFoundPage } from "./render/static-pages";
 import { leaderboardPage } from "./render/leaderboard";
+import { findingsPage } from "./render/findings";
 import { privacyPage, termsPage } from "./render/legal";
 import { type Row, type Sort, allSlugs, languageMedians, languages, leaderboard, leaderboardStats, relatedRepos, saveReport, storedReport } from "./db";
 
@@ -48,7 +49,7 @@ app.get("/version", (c) =>
 const RESERVED = new Set([
   "about", "leaderboard", "analyze", "badge", "og", "favicon.svg", "robots.txt",
   "sitemap.xml", "what-is-agents-md", "api", "static", "_", "assets", "privacy", "terms", "version", "og",
-  "draft",
+  "draft", "findings",
 ]);
 
 // GitHub's own rules: an owner is alphanumeric with single hyphens, a repo may
@@ -164,6 +165,7 @@ app.get("/leaderboard", async (c) => {
   });
 });
 app.get("/what-is-agents-md", (c) => c.html(agentsMdPage()));
+app.get("/findings", (c) => c.html(findingsPage()));
 app.get("/privacy", (c) => c.html(privacyPage()));
 app.get("/terms", (c) => c.html(termsPage()));
 
@@ -245,7 +247,7 @@ app.get("/og/:owner/:repo", async (c) => {
 
 app.get("/sitemap.xml", async (c) => {
   const base = "https://agentreadme.com";
-  const statics = ["/", "/leaderboard", "/about", "/what-is-agents-md", "/privacy", "/terms"];
+  const statics = ["/", "/findings", "/leaderboard", "/about", "/what-is-agents-md", "/privacy", "/terms"];
   const langs = c.env.DB ? await languages(c.env.DB).catch(() => []) : [];
   const repos = c.env.DB ? await allSlugs(c.env.DB).catch(() => []) : [];
 

@@ -221,7 +221,7 @@ ${jsonLd ? `<script type="application/ld+json">${JSON.stringify(jsonLd).replace(
 ${announce ? `<div class="announce">${announce}</div>` : ""}
 <header class="top"><div class="inner">
   <a class="brand" href="/">agent<i>readme</i></a>
-  <nav><a href="/leaderboard">Class list</a><a href="/what-is-agents-md">AGENTS.md</a><a href="/about">Marking scheme</a></nav>
+  <nav><a href="/findings">Findings</a><a href="/leaderboard">Class list</a><a href="/what-is-agents-md">AGENTS.md</a><a href="/about">Marking scheme</a></nav>
 </div></header>
 <main class="wrap">${body}</main>
 <footer><div class="wrap">

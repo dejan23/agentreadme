@@ -146,7 +146,7 @@ ${
       },
     },
     body,
-    announce: `We marked the ${total.toLocaleString()} most-starred repos on GitHub. The median scored ${median}. <a href="/leaderboard">Read the findings</a>`,
+    announce: `We marked the ${total.toLocaleString()} most-starred repos on GitHub. The median scored ${median}. <a href="/findings">Read the findings</a>`,
   });
 }
 
