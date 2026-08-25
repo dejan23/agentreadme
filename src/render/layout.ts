@@ -87,6 +87,22 @@ p{margin:0 0 1em}
 .band a{color:#fff;text-decoration-color:#5a5a5a}
 .band a:hover{color:var(--acc)}
 
+/* terminal: chrome, a prompt with a command that actually works, a cursor */
+.term{background:var(--ink);display:flex;flex-direction:column}
+.term .bar{display:flex;align-items:center;gap:7px;padding:11px 14px;
+  border-bottom:1px solid #262626;flex:none}
+.term .dot{width:10px;height:10px;border-radius:50%;background:#3A3A3A;flex:none}
+.term .name{margin-left:12px;font-family:var(--mono);font-size:12px;color:#6E6E6E;
+  letter-spacing:.02em}
+.term .body{padding:18px 20px 20px;overflow-x:auto;flex:1}
+.term pre{padding:0;background:none;overflow:visible}
+.term .cmd{color:#F2F2F2}
+.term .prompt{color:#6E6E6E}
+.term .dim{color:#8A8A8A}
+.term .cursor{display:inline-block;width:9px;height:15px;background:#F2F2F2;
+  vertical-align:-2px;margin-left:2px;animation:blink 1.05s step-end infinite}
+@keyframes blink{0%,50%{opacity:1}50.01%,100%{opacity:0}}
+
 /* code / report block */
 pre{background:var(--ink);color:#F2F2F2;padding:20px 22px;margin:0;overflow-x:auto;
   font-family:var(--mono);font-size:13.5px;line-height:1.65}

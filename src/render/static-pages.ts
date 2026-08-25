@@ -8,20 +8,36 @@ const FALLBACK_LANGS: Array<[string, number]> = [
   ["Python", 60], ["Java", 43], ["C++", 42], ["C", 38],
 ];
 
-const SAMPLE = `<s># honojs/hono — 72/100 · B+</s>
+/** Mirrors the real output of `curl agentreadme.com/honojs/hono.txt`. */
+const SAMPLE = `<div class="term">
+  <div class="bar">
+    <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+    <span class="name">bash \u2014 ~/code</span>
+  </div>
+  <div class="body"><pre><span class="prompt">$</span> <span class="cmd">curl agentreadme.com/honojs/hono.txt</span>
 
-<b>✗ Instructions</b>            3/27   F
-  No AGENTS.md. Every agent that
-  opens this repo starts from nothing.
+<s># honojs/hono \u2014 72/100 \u00b7 B+</s>
 
-✓ Setup                  14/14   A+
-✓ Verification loop      24/25   A+
-✓ Context economy        18/20   A
-✓ Navigability           10/10   A+
+<b>\u2717 Instructions              3/27   F</b>
+  None found. Every agent that opens
+  this repo starts from zero.
+\u2713 Setup                    14/14   A+
+\u2713 Verification loop        24/25   A+
+\u2713 Context economy          18/20   A
+\u2713 Navigability             10/10   A+
 
 <s># fix first</s>
-<b>+</b> Add AGENTS.md naming the build,
-  test, and dev commands.`;
+<b>+</b> Add an AGENTS.md at the root: what the
+  project is, how to install, how to run,
+  how to test, and the conventions a
+  newcomer always gets wrong.
+<b>+</b> Instructions earn their keep by naming
+  exact commands.
+
+<s># full report: agentreadme.com/honojs/hono</s>
+
+<span class="prompt">$</span> <span class="cursor"></span></pre></div>
+</div>`;
 
 const SCHEME: Array<[string, string, string]> = [
   ["Instructions", "27", "An AGENTS.md that names the real commands"],
@@ -81,7 +97,7 @@ export function homePage(recent?: Row[], stats?: Stats, langs?: Array<[string, n
       ).join("")}
     </div>
   </div>
-  <div><pre>${SAMPLE}</pre></div>
+  <div>${SAMPLE}</div>
 </section>
 
 ${
