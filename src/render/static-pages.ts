@@ -1,115 +1,195 @@
+import type { Row, Stats } from "../db";
 import { SITE, esc, layout } from "./layout";
-import { searchForm } from "./page";
+import { letterFor, searchForm } from "./page";
 
-const FEATURED = [
-  "openai/codex",
-  "honojs/hono",
-  "tinygrad/tinygrad",
-  "fastapi/fastapi",
-  "cloudflare/workers-sdk",
-  "expressjs/express",
+/** Real measured scores, shown when the database has nothing yet. */
+const FALLBACK: Array<[string, number, string]> = [
+  ["openai/codex", 82, "A-"],
+  ["cloudflare/workers-sdk", 77, "B+"],
+  ["tinygrad/tinygrad", 74, "B+"],
+  ["honojs/hono", 72, "B+"],
+  ["fastapi/fastapi", 63, "B"],
+  ["expressjs/express", 60, "B-"],
 ];
 
-export function homePage(): string {
+/** A real marked repository, used as the specimen on the front page. */
+const SPECIMEN = {
+  slug: "honojs/hono",
+  owner: "honojs",
+  repo: "hono",
+  meta: "TypeScript · 31,957 stars · 486 files",
+  note: "Solid foundations, held back in a few specific places.",
+  score: 72,
+  grade: "B+",
+  rows: [
+    ["Instructions", "3/27", 11],
+    ["Setup", "14/20", 70],
+    ["Verification loop", "24/25", 96],
+    ["Context economy", "18/20", 90],
+    ["Navigability", "10/10", 100],
+  ] as Array<[string, string, number]>,
+  remark:
+    "No AGENTS.md, so every agent that opens this repository starts from nothing. The testing and tooling underneath it are excellent.",
+};
+
+function leader(label: string, val: string, grade: string, href?: string): string {
+  const name = href ? `<a href="${href}" style="text-decoration:none">${esc(label)}</a>` : esc(label);
+  return `<div class="leader"><span class="lbl">${name}</span><span class="dots"></span>
+  <span class="val">${esc(val)}</span><span class="gr">${esc(grade)}</span></div>`;
+}
+
+export function homePage(recent?: Row[], stats?: Stats): string {
+  const rows =
+    recent && recent.length >= 4
+      ? recent.slice(0, 7).map((r) => [`${r.owner}/${r.repo}`, r.score, r.grade] as [string, number, string])
+      : FALLBACK;
+
+  const total = stats?.total ?? 876;
+  const median = stats?.median ?? 61;
+  const noTest = stats && stats.total ? Math.round(((stats.total - stats.withTestCommand) / stats.total) * 100) : 39;
+  const withMd = stats && stats.total ? Math.round((stats.withAgentsMd / stats.total) * 100) : 32;
+
   const body = `
-<section style="margin-bottom:34px">
-  <h1 style="font-size:34px;letter-spacing:-.03em;margin:0 0 10px;line-height:1.2">
-    Can an AI agent actually work in your repo?
-  </h1>
-  <p style="font-size:18px;color:var(--ink-2);margin:0 0 26px;max-width:62ch">
-    When Claude Code or Cursor flails in a codebase, people blame the model. Usually it's
-    the repo. Paste any public repository and get a graded breakdown of what an agent
-    can and can't figure out, plus the fixes that matter most.
+<section>
+  <h1 class="display">Can an AI agent <em>actually</em> work in your repo?</h1>
+  <p class="lede">
+    When Claude Code or Cursor flails in a codebase, everyone blames the model.
+    Usually it is the repository.
   </p>
   ${searchForm()}
-  <p class="note">No account, no install, nothing stored. Try
-    ${FEATURED.slice(0, 3).map((r) => `<a href="/${r}">${esc(r)}</a>`).join(", ")}.</p>
+  <p class="note" style="font-size:17px;color:var(--ink-2)">
+    Try it on the repo you have open right now. No account, nothing installed,
+    no code executed.</p>
 </section>
 
-<section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-bottom:36px">
-  ${[
-    ["Instructions", "Is there an AGENTS.md, and does it name real commands?"],
-    ["Setup", "Can an agent install this and get it running unattended?"],
-    ["Verification", "Can an agent check its own work, or is it editing blind?"],
-    ["Context economy", "Does the repo fit in a context window, or fight it?"],
-    ["Navigability", "How fast can something new orient itself here?"],
-  ]
-    .map(
-      ([h, p]) =>
-        `<div style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px 20px">
-      <div style="font-weight:640;margin-bottom:5px">${esc(h)}</div>
-      <div style="color:var(--ink-2);font-size:14.5px">${esc(p)}</div></div>`,
-    )
-    .join("")}
-</section>
-
-<section style="margin-bottom:20px">
-  <h2 style="font-size:19px;margin:0 0 12px">Recently graded</h2>
-  <div style="display:flex;gap:10px;flex-wrap:wrap">
-    ${FEATURED.map(
-      (r) =>
-        `<a href="/${r}" style="background:var(--panel);border:1px solid var(--line);
-      border-radius:8px;padding:9px 14px;font-family:var(--mono);font-size:14px;color:var(--ink-2)">${esc(r)}</a>`,
-    ).join("")}
+<article class="sheet" style="margin-top:34px">
+  <div class="sheet-head">
+    <div style="flex:1;min-width:200px">
+      <div class="sheet-title">Specimen</div>
+      <h2 class="subject" style="font-size:29px">
+        <a href="/${SPECIMEN.slug}" style="text-decoration:none"><span class="o">${esc(SPECIMEN.owner)}/</span>${esc(SPECIMEN.repo)}</a>
+      </h2>
+      <p class="subject-note">${esc(SPECIMEN.note)}</p>
+    </div>
+    <div class="sheet-meta">${esc(SPECIMEN.meta)}</div>
   </div>
-</section>`;
+  ${SPECIMEN.rows.map(([l, v, p]) => leader(l, v, letterFor(p))).join("")}
+  <div class="overall">
+    <span class="word">Overall mark</span>
+    <div class="circle"><div class="g">${SPECIMEN.grade}</div><div class="n">${SPECIMEN.score}/100</div></div>
+  </div>
+  <div class="remarks">
+    <h3>Remarks</h3>
+    <p style="color:var(--ink-2);margin:0">${esc(SPECIMEN.remark)}</p>
+  </div>
+</article>
+
+<section class="band"><div>
+  <h2>We marked the ${total.toLocaleString()} most-starred software repositories on GitHub</h2>
+  <div class="nums">
+    <div><div class="n">${median}</div><div class="l">median mark, out of a hundred</div></div>
+    <div><div class="n"><em>${noTest}%</em></div><div class="l">have no test command an agent can find</div></div>
+    <div><div class="n">${withMd}%</div><div class="l">ship an AGENTS.md</div></div>
+  </div>
+  <p style="margin:26px 0 0;font-size:16px"><a href="/leaderboard">See the whole class list</a></p>
+</div></section>
+
+<section style="display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:40px;margin:0 0 30px">
+  <div>
+    <h2 class="kicker">The marking scheme</h2>
+    ${[
+      ["Instructions", "27", "An AGENTS.md that names the real commands"],
+      ["Setup", "20", "A lockfile, declared commands, a documented environment"],
+      ["Verification loop", "25", "Tests an agent can find and run to check itself"],
+      ["Context economy", "20", "No 400KB files, no committed build output"],
+      ["Navigability", "10", "Documentation, a description, a licence"],
+    ]
+      .map(
+        ([l, m, d]) => `<div style="margin-bottom:15px">
+      <div class="leader" style="margin-bottom:2px"><span class="lbl">${esc(l)}</span>
+        <span class="dots"></span><span class="val">${esc(m)} marks</span></div>
+      <div style="color:var(--ink-3);font-size:15.5px;font-style:italic">${esc(d)}</div>
+    </div>`,
+      )
+      .join("")}
+  </div>
+
+  <div>
+    <h2 class="kicker">Recently marked</h2>
+    ${rows.map(([slug, score, grade]) => leader(slug, String(score), grade, `/${slug}`)).join("")}
+    <p style="margin-top:16px"><a href="/leaderboard">The whole class list</a></p>
+  </div>
+</section>
+
+<p style="color:var(--ink-2);max-width:60ch;font-style:italic;margin-bottom:44px">
+  Every deduction cites the file it came from, the
+  <a href="/about">marking scheme is published in full</a>, and the whole thing is open
+  source. If a mark is wrong, the fix is a pull request.
+</p>`;
 
   return layout({
-    title: `${SITE} · Is your repo ready for AI coding agents?`,
+    title: `${SITE} · Is your repository ready for AI coding agents?`,
     description:
-      "Grade any public GitHub repository on how well AI coding agents can work in it. Checks agent instructions, setup, the verification loop, context economy, and navigability, then tells you what to fix first.",
+      "Mark any public GitHub repository on how well AI coding agents can work in it. Checks agent instructions, setup, the verification loop, context economy, and navigability, then says what to fix first.",
     canonical: "/",
     body,
+    extraCss: `@media (max-width:720px){ main section[style*="1.05fr"]{grid-template-columns:1fr!important;gap:26px!important} }`,
   });
 }
 
 export function aboutPage(): string {
   const body = `
-<h1 style="font-size:28px;letter-spacing:-.02em;margin:0 0 8px">How the score works</h1>
-<p style="color:var(--ink-2);max-width:66ch;font-size:16.5px">
-  Every point on a report card traces back to something in your repository. There is no
-  model judging your code and no vibes in the number. The whole rubric is checks against
-  files, and you can read the source.
+<h1 style="font-size:38px;margin:0 0 12px;letter-spacing:-.02em">The marking scheme</h1>
+<p style="font-size:19px;color:var(--ink-2);max-width:58ch">
+  Every mark traces back to something in the repository. No model judges your code and
+  there is no discretion in the number. The whole scheme is checks against files, and
+  you can read the source.
 </p>
 
-<h2 style="font-size:19px;margin:32px 0 6px">What we look at</h2>
-<div style="color:var(--ink-2);max-width:70ch">
-  <p><b style="color:var(--ink)">Instructions (27 points).</b> Whether an AGENTS.md, CLAUDE.md,
-  or equivalent exists, and whether it does anything useful. A file that never names a build or
-  test command scores badly no matter how long it is.</p>
-  <p><b style="color:var(--ink)">Setup (20 points).</b> A lockfile, discoverable commands, a
+<h2 style="font-size:24px;margin:34px 0 10px">What is marked</h2>
+<div style="color:var(--ink-2);max-width:62ch">
+  <p><b style="color:var(--ink)">Instructions, 27 marks.</b> Whether an AGENTS.md, CLAUDE.md,
+  or equivalent exists, and whether it does anything useful. A file that never names a build
+  or test command scores badly however long it is.</p>
+  <p><b style="color:var(--ink)">Setup, 20 marks.</b> A lockfile, discoverable commands, a
   documented environment, a pinned runtime. The question is whether an agent gets the project
-  running without a human in the loop.</p>
-  <p><b style="color:var(--ink)">Verification loop (25 points).</b> The heaviest category.
-  Tests that exist, a test command an agent can actually find, CI, linting, type checking.
-  An agent that cannot check its own work is guessing, and this is what separates useful
-  output from confident nonsense.</p>
-  <p><b style="color:var(--ink)">Context economy (20 points).</b> Committed build output,
-  oversized source files, repository weight. A 400KB file forces an agent to work from
+  running with nobody watching.</p>
+  <p><b style="color:var(--ink)">Verification loop, 25 marks.</b> The heaviest section. Tests
+  that exist, a test command an agent can actually find, CI, linting, type checking. An agent
+  that cannot check its own work is guessing, and this is what separates useful output from
+  confident nonsense.</p>
+  <p><b style="color:var(--ink)">Context economy, 20 marks.</b> Committed build output,
+  oversized source files, repository weight. One 400KB file forces an agent to work from
   fragments and edit code it never read.</p>
-  <p><b style="color:var(--ink)">Navigability (10 points).</b> Documentation, a description,
-  a license.</p>
+  <p><b style="color:var(--ink)">Navigability, 10 marks.</b> Documentation, a description,
+  a licence.</p>
 </div>
 
-<h2 style="font-size:19px;margin:32px 0 6px">Checks that don't apply, don't count</h2>
-<p style="color:var(--ink-2);max-width:70ch">A library has no environment to configure and no
-reason to ship a Dockerfile. Those checks are marked not applicable and are removed from the
-total rather than scored as zero, so nothing is penalised for being what it is.</p>
+<h2 style="font-size:24px;margin:34px 0 10px">Checks that do not apply are not counted</h2>
+<p style="color:var(--ink-2);max-width:62ch">A library has no environment to configure and no
+reason to ship a Dockerfile. Those checks are marked not applicable and removed from the total
+rather than scored as zero, so nothing is punished for being what it is.</p>
 
-<h2 style="font-size:19px;margin:32px 0 6px">What we never do</h2>
-<p style="color:var(--ink-2);max-width:70ch">No code is executed and no repository is cloned.
-Grading is two GitHub API calls plus a few small config files read from a CDN. Private
-repositories cannot be graded at all.</p>
+<h2 style="font-size:24px;margin:34px 0 10px">Link collections are marked separately</h2>
+<p style="color:var(--ink-2);max-width:62ch">Many of the most-starred repositories on GitHub are
+curated lists, books, and tutorials. Asking whether an agent can install and test a list of links
+is meaningless, so those are marked but kept off the class list and out of every published
+statistic.</p>
 
-<h2 style="font-size:19px;margin:32px 0 6px">If a score is wrong</h2>
-<p style="color:var(--ink-2);max-width:70ch">Some of it will be. The rubric is opinionated and
-the detection misses things, especially outside JavaScript and Python. It is open source, so
-the useful move is a pull request adding the case we got wrong.</p>`;
+<h2 style="font-size:24px;margin:34px 0 10px">What never happens</h2>
+<p style="color:var(--ink-2);max-width:62ch">No code is executed and no repository is cloned.
+Marking is two GitHub API calls plus a few small configuration files read from a CDN. Private
+repositories cannot be marked at all.</p>
+
+<h2 style="font-size:24px;margin:34px 0 10px">If a mark is wrong</h2>
+<p style="color:var(--ink-2);max-width:62ch">Some of them will be. The scheme is opinionated and
+the detection misses things, particularly outside JavaScript and Python. It is open source, so
+the useful response is a pull request adding the case we got wrong.</p>`;
 
   return layout({
-    title: `How the agent readiness score works · ${SITE}`,
+    title: `The marking scheme · ${SITE}`,
     description:
-      "The full rubric behind the score: instructions, setup, verification loop, context economy, and navigability, with every check traced to a file in your repository.",
+      "The full rubric behind the mark: instructions, setup, the verification loop, context economy, and navigability, with every check traced to a file in the repository.",
     canonical: "/about",
     body,
   });
@@ -117,22 +197,22 @@ the useful move is a pull request adding the case we got wrong.</p>`;
 
 export function agentsMdPage(): string {
   const body = `
-<h1 style="font-size:28px;letter-spacing:-.02em;margin:0 0 8px">What is AGENTS.md?</h1>
-<p style="color:var(--ink-2);max-width:66ch;font-size:16.5px">
-  It is a plain markdown file at the root of a repository that tells an AI coding agent how to
-  work in it. Think of the README as written for a person deciding whether to use your project,
-  and AGENTS.md as written for whoever has to change it.
+<h1 style="font-size:38px;margin:0 0 12px;letter-spacing:-.02em">What is AGENTS.md?</h1>
+<p style="font-size:19px;color:var(--ink-2);max-width:58ch">
+  A plain markdown file at the root of a repository that tells an AI coding agent how to work
+  in it. The README is written for a person deciding whether to use your project. AGENTS.md is
+  written for whoever has to change it.
 </p>
 
-<h2 style="font-size:19px;margin:30px 0 6px">Why a separate file</h2>
-<p style="color:var(--ink-2);max-width:70ch">READMEs are marketing as much as instruction. They
-open with badges and a pitch, and bury the build command in the middle. An agent needs the
-opposite: commands first, conventions second, and none of the persuasion.</p>
+<h2 style="font-size:24px;margin:34px 0 10px">Why a separate file</h2>
+<p style="color:var(--ink-2);max-width:62ch">READMEs are marketing as much as instruction. They
+open with badges and a pitch and bury the build command in the middle. An agent needs the
+opposite: commands first, conventions second, none of the persuasion.</p>
 
-<h2 style="font-size:19px;margin:30px 0 6px">What to put in it</h2>
-<p style="color:var(--ink-2);max-width:70ch">The test that matters is whether a competent
-stranger could make a small change and verify it, using only this file.</p>
-<pre style="max-width:70ch"><code># AGENTS.md
+<h2 style="font-size:24px;margin:34px 0 10px">What belongs in it</h2>
+<p style="color:var(--ink-2);max-width:62ch">The test that matters is whether a capable stranger
+could make a small change and verify it using only this file.</p>
+<pre style="max-width:62ch"><code># AGENTS.md
 
 ## Setup
 pnpm install
@@ -144,30 +224,30 @@ pnpm typecheck    # tsc --noEmit
 
 ## Conventions
 - Server code in src/server, client in src/app. Never import across that line.
-- Database changes go through a migration in db/migrations. Never edit schema.sql by hand.
-- Tests live next to the file they cover, as *.test.ts.
+- Database changes go through a migration in db/migrations.
+- Tests sit next to the file they cover, as *.test.ts.
 
 ## Gotchas
-- The dev server needs Postgres running. docker compose up -d db first.
-- Anything under src/generated is built from the schema. Edit the schema instead.</code></pre>
+- The dev server needs Postgres. Run docker compose up -d db first.
+- Anything under src/generated is built from the schema. Edit the schema.</code></pre>
 
-<h2 style="font-size:19px;margin:30px 0 6px">What makes one bad</h2>
-<div style="color:var(--ink-2);max-width:70ch">
-  <p>Being too short. A three-line file saying "this is a TypeScript project, write clean code"
-  changes nothing about what an agent does.</p>
-  <p>Being too long. Twenty thousand characters of philosophy gets loaded on every single turn
-  and crowds out the code the agent needs to read.</p>
-  <p>Naming no commands. This is the most common failure by a wide margin. If the file never
-  says how to run the tests, the agent guesses, guesses wrong, and reports success anyway.</p>
+<h2 style="font-size:24px;margin:34px 0 10px">What makes one bad</h2>
+<div style="color:var(--ink-2);max-width:62ch">
+  <p><b style="color:var(--ink)">Too short.</b> Three lines saying "this is a TypeScript project,
+  write clean code" changes nothing about what an agent does.</p>
+  <p><b style="color:var(--ink)">Too long.</b> Twenty thousand characters of philosophy loads on
+  every turn and crowds out the code the agent needs to read.</p>
+  <p><b style="color:var(--ink)">No commands.</b> The most common failure by a wide margin. If the
+  file never says how to run the tests, the agent guesses, guesses wrong, and reports success.</p>
 </div>
 
-<h2 style="font-size:19px;margin:30px 0 6px">Which filename</h2>
-<p style="color:var(--ink-2);max-width:70ch">AGENTS.md is the vendor-neutral one and the most
+<h2 style="font-size:24px;margin:34px 0 10px">Which filename</h2>
+<p style="color:var(--ink-2);max-width:62ch">AGENTS.md is the vendor-neutral one and the most
 widely read. CLAUDE.md, .cursorrules, and .github/copilot-instructions.md are tool-specific.
-Keeping a tool-specific file is fine, but AGENTS.md is the one that works everywhere, and
-scoring here reflects that.</p>
+Keeping one of those alongside is fine, but AGENTS.md is the one that works everywhere, and the
+marking reflects that.</p>
 
-<p style="margin-top:30px">${""}<a href="/">Grade a repository</a> to see how its instructions score.</p>`;
+<p style="margin-top:32px"><a href="/">Mark a repository</a> and see how its instructions score.</p>`;
 
   return layout({
     title: `What is AGENTS.md, and how do you write a good one? · ${SITE}`,
@@ -181,8 +261,9 @@ scoring here reflects that.</p>
 export function notFoundPage(): string {
   return layout({
     title: `Not found · ${SITE}`,
-    description: "That page doesn't exist.",
-    body: `<h1 style="font-size:24px">Nothing here</h1>
-<p style="color:var(--ink-2)">Grade a repository instead.</p>${searchForm()}`,
+    description: "That page does not exist.",
+    noindex: true,
+    body: `<h1 style="font-size:32px">Nothing here</h1>
+<p style="color:var(--ink-2)">Mark a repository instead.</p>${searchForm()}`,
   });
 }

@@ -12,7 +12,18 @@ import { snapshot } from "../src/github";
 import { grade } from "../src/grade";
 import { toRow, upsertValues, type Row } from "../src/db";
 
-const TOKEN = process.env.GITHUB_TOKEN;
+/** Reads GITHUB_TOKEN from the environment, falling back to .dev.vars. */
+function loadToken(): string | undefined {
+  if (process.env.GITHUB_TOKEN) return process.env.GITHUB_TOKEN;
+  try {
+    const m = readFileSync(".dev.vars", "utf8").match(/^\s*GITHUB_TOKEN\s*=\s*(.+)$/m);
+    return m ? m[1].trim().replace(/^["']|["']$/g, "") : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+const TOKEN = loadToken();
 const OUT_DIR = "seed";
 const JSONL = `${OUT_DIR}/reports.jsonl`;
 const SQL = `${OUT_DIR}/seed.sql`;

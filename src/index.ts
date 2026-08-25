@@ -62,7 +62,19 @@ const SVG = {
   "Cache-Control": "public, max-age=1800, s-maxage=1800",
 };
 
-app.get("/", (c) => c.html(homePage()));
+app.get("/", async (c) => {
+  // Show real recent grades when we have them, and fall back to a measured
+  // sample so the page is never empty on a cold database.
+  let recent: Awaited<ReturnType<typeof leaderboard>> | undefined;
+  let stats: Awaited<ReturnType<typeof leaderboardStats>> | undefined;
+  if (c.env.DB) {
+    [recent, stats] = await Promise.all([
+      leaderboard(c.env.DB, { sort: "popular", limit: 7 }).catch(() => undefined),
+      leaderboardStats(c.env.DB).catch(() => undefined),
+    ]);
+  }
+  return c.html(homePage(recent, stats), 200, { "Cache-Control": "public, max-age=300" });
+});
 app.get("/about", (c) => c.html(aboutPage()));
 
 app.get("/leaderboard", async (c) => {
@@ -84,7 +96,7 @@ app.get("/what-is-agents-md", (c) => c.html(agentsMdPage()));
 
 app.get("/favicon.svg", (c) =>
   c.body(
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0b0d10"/><path d="M18 44V20h10a8 8 0 0 1 0 16h-6" stroke="#7cc4ff" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M30 34l10 10" stroke="#7cc4ff" stroke-width="5" stroke-linecap="round"/></svg>`,
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="#f8f4ea"/><rect x="4.5" y="4.5" width="55" height="55" fill="none" stroke="#221e18" stroke-width="3"/><text x="32" y="45" font-family="Georgia,serif" font-size="34" font-weight="600" fill="#ab2a1e" text-anchor="middle">A</text></svg>`,
     200,
     SVG,
   ),

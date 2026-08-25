@@ -57,7 +57,8 @@ export const ARTIFACT_DIRS: Array<{ dir: string; label: string }> = [
 const SOURCE_EXT = new Set([
   "ts", "tsx", "js", "jsx", "mjs", "cjs", "py", "rb", "go", "rs", "java", "kt",
   "swift", "c", "h", "cc", "cpp", "hpp", "cs", "php", "scala", "ex", "exs",
-  "vue", "svelte", "sh", "bash", "sql", "m", "mm", "dart", "zig", "lua", "pl", "r",
+  "vue", "svelte", "astro", "sh", "bash", "sql", "m", "mm", "dart", "zig", "lua", "pl", "r",
+  "hs", "jl", "nim", "clj", "cljs", "erl", "elm", "fs", "ml", "groovy", "sol", "v", "cr",
 ]);
 
 /** Paths that are real source but that nobody hand-maintains. */
@@ -200,12 +201,39 @@ export interface ProjectShape {
  * collections, and scoring them on "can an agent install and test this" is
  * meaningless. They are graded but kept off the leaderboard.
  */
+const CONTENT_NAME =
+  /\b(awesome|cheat-?sheets?|tutorials?|curated|collection|resources?|interview|books?|courses?|learn(ing)?|guides?|primer|handbook|notes|papers|links|roadmap|examples?|exercises|challenges|questions|100-?days|30-?days|list of|every-?programmer|design-?patterns)\b/i;
+
+/** A real library or app has at least one of these. Content repos have none. */
+function hasEngineering(s: RepoSnapshot): boolean {
+  if (hasAny(s, LOCKFILES)) return true;
+  if (ciWorkflows(s).length > 0 || hasAny(s, CI_FILES)) return true;
+  if (testFiles(s).length > 0) return true;
+  return false;
+}
+
 export function projectShape(s: RepoSnapshot): ProjectShape {
   const all = blobs(s);
   const sources = all.filter((e) => isSource(e.path));
   const docs = all.filter((e) => /\.(md|mdx|markdown|rst|txt)$/i.test(e.path));
   const docRatio = all.length > 0 ? docs.length / all.length : 0;
   const manifest = hasAny(s, MANIFESTS);
+
+  // Tutorials, cheatsheets, and curated lists often ship real code samples, so
+  // file counts alone call them software. What they never have is engineering
+  // around that code: no lockfile, no CI, no tests.
+  const named = `${s.meta.repo} ${s.meta.description ?? ""}`;
+  if (CONTENT_NAME.test(named) && (!hasEngineering(s) || sources.length < 10)) {
+    return {
+      isSoftware: false,
+      reason:
+        sources.length < 10
+          ? `it presents as a list, tutorial, or reference and holds only ${sources.length} source files`
+          : "it presents as a list, tutorial, or reference, and carries no lockfile, CI, or tests",
+      sourceCount: sources.length,
+      docRatio,
+    };
+  }
 
   if (manifest && sources.length >= 3) {
     return { isSoftware: true, reason: `${manifest} plus ${sources.length} source files`, sourceCount: sources.length, docRatio };
