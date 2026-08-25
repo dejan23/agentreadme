@@ -47,9 +47,16 @@ export function privacyPage(): string {
 <section>
   <h2>Private repositories</h2>
   <div class="doc" style="margin-top:20px">
-    <p>Cannot be marked, at all. The token this service uses can only read public repositories, so
-    there is no path by which private code reaches us. If a repository is private, or becomes
+    <p>Cannot be marked here, at all. The token this service uses can only read public repositories,
+    so there is no path by which private code reaches us. If a repository is private, or becomes
     private, marking it simply fails.</p>
+    <p><b>For private code there is a command line tool</b>, <code>npx agentreadme</code>, which runs
+    the same checks on your own machine. It sends nothing anywhere, and that is checkable rather than
+    a promise: the published binary imports only <code>fs</code>, <code>path</code>, and
+    <code>child_process</code>, contains no HTTP client or sockets at all, and works with your network
+    switched off. The <a href="https://www.npmjs.com/package/agentreadme">package</a> and its
+    <a href="https://github.com/dejan23/agentreadme/blob/main/src/local/cli.ts">source</a> are public,
+    so you can read it before you run it.</p>
     <p>If a public repository of yours has been marked and you would rather it were not listed, ask
     and we will remove it.</p>
   </div>
