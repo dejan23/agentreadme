@@ -57,7 +57,7 @@ p{margin:0 0 1em}
   max-width:1180px;margin:0 auto;padding:15px 32px}
 .brand{font-weight:800;font-size:20px;letter-spacing:-.035em;text-decoration:none}
 .brand i{font-style:normal;color:var(--acc)}
-.top nav{margin-left:auto;display:flex;gap:22px}
+.top nav{margin-left:auto;display:flex;flex-wrap:wrap;gap:10px 20px}
 .top nav a{font-size:15px;color:var(--ink-2);text-decoration:none;font-weight:500}
 .top nav a:hover{color:var(--acc-t)}
 .top nav a.src{color:var(--ink);font-weight:600}
@@ -218,7 +218,8 @@ footer p{margin:0 0 .6em;max-width:74ch;margin-left:auto;margin-right:auto}
 @media (max-width:640px){
   .wrap{padding:0 20px}
   .top .inner{padding:14px 20px;gap:16px}
-  .top nav{gap:14px;width:100%;margin-left:0}
+  .top nav{gap:8px 16px;width:100%;margin-left:0}
+  .top nav a{font-size:14px}
   section{padding:40px 0}
   .search{flex-direction:column}
   /* Keep the full-bleed padding, or the band's text runs into the screen edge. */
@@ -269,7 +270,7 @@ ${announce ? `<div class="announce">${announce}</div>` : ""}
 <header class="top"><div class="inner">
   <a class="brand" href="/">agent<i>readme</i></a>
   <nav>
-    <a href="/findings">Findings</a><a href="/leaderboard">Class list</a><a href="/what-is-agents-md">AGENTS.md</a><a href="/about">Marking scheme</a><a href="https://github.com/dejan23/agentreadme" class="src">GitHub</a>
+    <a href="/findings">Findings</a><a href="/leaderboard">Class list</a><a href="/what-is-agents-md">AGENTS.md</a><a href="/about">Marking scheme</a><a href="/feedback">Feedback</a><a href="https://github.com/dejan23/agentreadme" class="src">GitHub</a>
   </nav>
 </div></header>
 <main class="wrap">${body}</main>
