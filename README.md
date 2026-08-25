@@ -1,8 +1,14 @@
 # agentreadme
 
+[![agent ready](https://agentreadme.com/badge/dejan23/agentreadme.svg)](https://agentreadme.com/dejan23/agentreadme)
+[![CI](https://github.com/dejan23/agentreadme/actions/workflows/ci.yml/badge.svg)](https://github.com/dejan23/agentreadme/actions/workflows/ci.yml)
+
 Grades any public GitHub repository on how well AI coding agents can work in it.
 
-[agentreadme.com](https://agentreadme.com)
+**[agentreadme.com](https://agentreadme.com)**
+
+The badge above is this repository's own mark, re-checked on every page load.
+We would have no business scoring anyone else otherwise.
 
 When Claude Code or Cursor flails in a codebase, everyone blames the model.
 Usually it is the repository. There is no test command the agent can find, or
