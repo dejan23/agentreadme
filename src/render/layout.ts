@@ -173,8 +173,10 @@ export function layout(opts: {
   noindex?: boolean;
   /** Optional announcement strip, used to carry the launch finding. */
   announce?: string;
+  /** Page-specific script, appended after the shared one. */
+  extraJs?: string;
 }): string {
-  const { title, description, canonical, body, ogImage, extraCss, noindex, announce } = opts;
+  const { title, description, canonical, body, ogImage, extraCss, noindex, announce, extraJs } = opts;
   const url = canonical ? `https://${SITE}${canonical}` : `https://${SITE}`;
   return `<!doctype html>
 <html lang="en"><head>
@@ -206,8 +208,9 @@ ${announce ? `<div class="announce">${announce}</div>` : ""}
 <footer><div class="wrap">
   <p>Every public repository is marked against the same scheme. Nothing is cloned, nothing is executed, and private repositories cannot be marked.</p>
   <p><a href="/about">Marking scheme</a> · <a href="/leaderboard">Class list</a> · <a href="https://github.com/agentreadme">Source</a></p>
+  <p style="margin-top:14px">Built by <a href="https://x.com/dejansto_" rel="me">@dejansto_</a></p>
 </div></footer>
-<script>${COUNT_JS}</script>
+<script>${COUNT_JS}${extraJs ?? ""}</script>
 </body></html>`;
 }
 

@@ -29,8 +29,37 @@ const EXTRA_CSS = `
 .reg .gr{font-family:var(--mono);font-size:18px;font-weight:700;width:46px;text-align:right}
 .reg .gr.bad{color:var(--acc-t)}
 .scroll{overflow-x:auto}
+#lb{transition:opacity .12s ease-out}
+#lb[data-loading]{opacity:.4}
 @media (max-width:700px){ .reg .lg,.reg .st,.reg .nm small{display:none} }
 `;
+
+/**
+ * Swaps the table in place when a filter is clicked, instead of reloading the
+ * page. The links stay real URLs so they still work with JavaScript off and
+ * still get crawled; this only intercepts them.
+ */
+const FILTER_JS = `(function(){
+var root=document.getElementById('lb');
+if(!root||!window.fetch||!window.history.pushState||!Element.prototype.closest)return;
+function load(url,push){
+root.setAttribute('data-loading','');
+fetch(url,{credentials:'same-origin'}).then(function(r){return r.text()}).then(function(t){
+var doc=new DOMParser().parseFromString(t,'text/html'),next=doc.getElementById('lb');
+if(!next)throw 0;
+root.innerHTML=next.innerHTML;
+root.removeAttribute('data-loading');
+if(doc.title)document.title=doc.title;
+if(push)history.pushState({},'',url);
+}).catch(function(){location.href=url});
+}
+root.addEventListener('click',function(e){
+var a=e.target.closest('a');
+if(!a||(!a.closest('.filters')&&!a.closest('.langs')))return;
+e.preventDefault();load(a.getAttribute('href'),true);
+});
+window.addEventListener('popstate',function(){load(location.pathname+location.search,false)});
+})();`;
 
 function pctOf(n: number, total: number): number {
   return total ? Math.round((n / total) * 100) : 0;
@@ -99,7 +128,7 @@ export function leaderboardPage(opts: {
   </div>
 </section>
 
-<section style="padding-top:44px">
+<section style="padding-top:44px"><div id="lb">
   <div class="filters">
     ${tab("best", "Top of the class")}
     ${tab("worst", "Bottom of the class")}
@@ -122,7 +151,7 @@ export function leaderboardPage(opts: {
   </table></div>`
       : `<p class="lede">Nothing marked yet.${language ? " Try another language." : ""}</p>`
   }
-</section>
+</div></section>
 
 <section class="center">
   <h2>Mark <i>yours</i>.</h2>
@@ -138,5 +167,6 @@ export function leaderboardPage(opts: {
     canonical: language ? `/leaderboard?sort=${sort}&lang=${encodeURIComponent(language)}` : `/leaderboard?sort=${sort}`,
     body,
     extraCss: EXTRA_CSS,
+    extraJs: FILTER_JS,
   });
 }
