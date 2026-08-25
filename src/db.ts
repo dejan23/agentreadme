@@ -27,6 +27,17 @@ export interface Row {
 /** Repos below this are graded and stored, but kept off the leaderboard. */
 export const LEADERBOARD_MIN_STARS = 1000;
 
+/**
+ * Below this, a report is reachable but not submitted to search engines.
+ *
+ * Someone pasting their own repository is asking for a mark, not for a public
+ * page about it in Google. Pushing obscure repos at search engines is also the
+ * thin-content signal that would sink indexing for the pages that matter.
+ * Lower than the leaderboard threshold, because a 200 star project is a real
+ * public thing worth finding, while a 2 star one is somebody's weekend.
+ */
+export const INDEX_MIN_STARS = 100;
+
 function pct(score: number, max: number): number {
   return max > 0 ? Math.round((score / max) * 100) : 0;
 }
@@ -231,11 +242,11 @@ export async function allSlugs(
   const { results } = await db
     .prepare(
       `SELECT slug, graded_at FROM reports
-       WHERE is_software = 1
+       WHERE is_software = 1 AND stars >= ?
        ORDER BY stars DESC
        LIMIT ?`,
     )
-    .bind(limit)
+    .bind(INDEX_MIN_STARS, limit)
     .all<{ slug: string; graded_at: string }>();
   return results ?? [];
 }

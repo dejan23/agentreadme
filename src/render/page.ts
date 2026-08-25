@@ -1,5 +1,5 @@
 import type { Category, Check, Report } from "../grade/types";
-import type { Row } from "../db";
+import { INDEX_MIN_STARS, type Row } from "../db";
 import { disputeUrl } from "./feedback";
 import { SITE, attr, barRow, esc, figure, layout } from "./layout";
 
@@ -226,7 +226,10 @@ ${r.truncatedTree ? `<p class="note">This repository is large enough that GitHub
     canonical: `/${slug}`,
     body,
     ogImage: `/og/${slug}.png`,
-    noindex: !r.isSoftware,
+    // Not indexed when it is not software, or when the repository is obscure
+    // enough that its owner did not ask for a public page in search results.
+    // The page still works for anyone holding the link.
+    noindex: !r.isSoftware || r.stars < INDEX_MIN_STARS,
     jsonLd: {
       "@context": "https://schema.org",
       "@graph": [
