@@ -1,5 +1,6 @@
 import type { Category, Check, Report } from "../grade/types";
 import type { Row } from "../db";
+import { disputeUrl } from "./feedback";
 import { SITE, attr, barRow, esc, figure, layout } from "./layout";
 
 /** Category letter from its percentage. Same curve as the overall grade. */
@@ -94,6 +95,11 @@ export function reportPage(r: Report, related: Row[] = []): string {
       });
     })
     .join("");
+
+  // The lowest-scoring category, so the pre-filled issue points at the argument.
+  const weakest = [...r.categories]
+    .filter((c) => c.max > 0)
+    .sort((a, b) => a.score / a.max - b.score / b.max)[0];
 
   const notSoftware = !r.isSoftware
     ? `<p class="note" style="border-left:3px solid var(--acc);padding-left:14px;margin:0 0 24px;max-width:70ch">
@@ -199,6 +205,14 @@ ${
 </section>`
     : ""
 }
+
+<section class="center" style="border-top:1px solid var(--rule)">
+  <p class="kicker" style="margin-bottom:12px">Think this mark is wrong?</p>
+  <p class="lede" style="margin-bottom:20px">Every deduction above names the file it came from, so this
+    can be settled by looking. If a check missed something, that is a rule worth fixing.</p>
+  <p><a href="${attr(disputeUrl(slug, r.score, r.grade, weakest?.label))}" rel="noopener">Open an issue,
+    already filled in</a></p>
+</section>
 
 ${r.truncatedTree ? `<p class="note">This repository is large enough that GitHub truncated the file listing, so the file-level checks ran on a sample.</p>` : ""}
 `;
