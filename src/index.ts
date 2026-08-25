@@ -13,14 +13,37 @@ import { type Row, type Sort, allSlugs, languageMedians, languages, leaderboard,
 export interface Env {
   GITHUB_TOKEN?: string;
   DB?: D1Database;
+  /** Commit this build came from. Injected by the deploy workflow. */
+  GIT_SHA?: string;
 }
 
 const app = new Hono<{ Bindings: Env }>();
 
+/**
+ * Stamps every response with the commit it was built from.
+ *
+ * Without this there is no way to tell which source produced what is running:
+ * a Worker version id says nothing about a commit, so "what is deployed?"
+ * becomes a question only the person who ran deploy can answer.
+ */
+app.use("*", async (c, next) => {
+  await next();
+  c.header("x-agentreadme-version", c.env.GIT_SHA ?? "dev");
+});
+
+/** Machine-readable build and health check. */
+app.get("/version", (c) =>
+  c.json(
+    { commit: c.env.GIT_SHA ?? "dev", source: "https://github.com/dejan23/agentreadme" },
+    200,
+    { "Cache-Control": "no-store" },
+  ),
+);
+
 /** Paths that are pages of ours, not GitHub owners. */
 const RESERVED = new Set([
   "about", "leaderboard", "analyze", "badge", "og", "favicon.svg", "robots.txt",
-  "sitemap.xml", "what-is-agents-md", "api", "static", "_", "assets", "privacy", "terms",
+  "sitemap.xml", "what-is-agents-md", "api", "static", "_", "assets", "privacy", "terms", "version",
 ]);
 
 // GitHub's own rules: an owner is alphanumeric with single hyphens, a repo may

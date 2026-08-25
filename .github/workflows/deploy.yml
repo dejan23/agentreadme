@@ -32,8 +32,9 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
+      # Bake the commit into the build so production can say where it came from.
       - name: Deploy
-        run: bunx wrangler deploy
+        run: bunx wrangler deploy --var GIT_SHA:"${{ github.sha }}"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
@@ -46,3 +47,8 @@ jobs:
             echo "$path -> $code"
             [ "$code" = "200" ] || { echo "FAILED on $path"; exit 1; }
           done
+          # Confirm the deploy that just ran is the one now serving traffic.
+          live=$(curl -s --retry 5 --retry-delay 4 "$BASE/version" | grep -o '"commit":"[^"]*"' | cut -d'"' -f4)
+          echo "live commit: $live"
+          echo "this commit: ${{ github.sha }}"
+          [ "$live" = "${{ github.sha }}" ] || { echo "Deployed commit does not match; something else is serving"; exit 1; }
