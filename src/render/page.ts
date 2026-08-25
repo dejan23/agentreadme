@@ -83,12 +83,15 @@ export function reportPage(r: Report, related: Row[] = []): string {
       // What the category measures, plus what this repo actually lost, so the
       // tooltip says something specific rather than repeating the label.
       const missed = c.checks.filter((x) => !x.na && x.score < x.max);
+      // Accent marks only what is costing you, per DESIGN.md. Full marks is the
+      // opposite of a warning, and colouring it also made it read as a link
+      // inside a tooltip that cannot be clicked.
       const lost = missed.length
         ? ` <b>Losing marks on ${missed
             .slice(0, 2)
             .map((x) => x.label.toLowerCase())
             .join(" and ")}.</b>`
-        : " <b>Full marks.</b>";
+        : ` <em>Full marks.</em>`;
       return barRow(c.label, pct, `${c.score}/${c.max}`, pct < 55, i, {
         tip: `${esc(c.blurb)}${lost}`,
         href: `#${c.id}`,

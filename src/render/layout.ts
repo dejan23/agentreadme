@@ -86,6 +86,7 @@ a.bar:focus-visible{outline:2px solid var(--acc);outline-offset:3px}
   background:var(--ink);color:#fff;padding:11px 13px;font-size:14px;line-height:1.4;
   opacity:0;visibility:hidden;transition:opacity .12s ease-out;pointer-events:none}
 .tip b{color:var(--acc);font-weight:600}
+.tip em{font-style:normal;color:#fff;font-weight:600}
 a.bar:hover .tip,a.bar:focus-visible .tip{opacity:1;visibility:visible}
 @media (hover:none){ .tip{display:none} }
 .bar .n{font-size:13.5px;font-weight:500;color:var(--ink-2)}
