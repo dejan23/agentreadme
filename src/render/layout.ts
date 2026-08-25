@@ -1,5 +1,15 @@
 export const SITE = "agentreadme.com";
 
+/**
+ * Cloudflare Web Analytics site token. Not a secret: it identifies the site,
+ * not a person. Empty string means no script is served at all, which is the
+ * state the privacy page describes when it is empty.
+ *
+ * Chosen over Google Analytics deliberately. It sets no cookies, identifies
+ * nobody, and needs no consent banner, which keeps the privacy page true.
+ */
+const ANALYTICS_TOKEN = "";
+
 const FONTS =
   "https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap";
 
@@ -247,6 +257,7 @@ ${announce ? `<div class="announce">${announce}</div>` : ""}
   <p style="margin-top:14px">Built by <a href="https://x.com/dejansto_" rel="me">@dejansto_</a></p>
 </div></footer>
 <script>${COUNT_JS}${extraJs ?? ""}</script>
+${ANALYTICS_TOKEN ? `<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"${ANALYTICS_TOKEN}"}'></script>` : ""}
 </body></html>`;
 }
 

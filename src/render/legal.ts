@@ -16,8 +16,13 @@ export function privacyPage(): string {
   <div class="doc" style="margin-top:20px">
     <p><b>Nothing about you.</b> Marking a repository needs a public repository name and nothing
     else. There is no sign-up, no email field, and no profile.</p>
-    <p><b>No cookies and no analytics.</b> This site sets no cookies, runs no analytics script, and
-    embeds no tracking pixels. Nothing is stored in your browser.</p>
+    <p><b>No cookies, and no tracking.</b> This site sets no cookies and embeds no tracking pixels.
+    Nothing is stored in your browser.</p>
+    <p><b>Counting visits, without identifying you.</b> We use Cloudflare Web Analytics to see how many
+    people reach a page and where they came from. It sets no cookies, assigns no identifier, and
+    follows nobody between sites or across visits, which is why this page needs no consent banner.
+    Google Analytics was considered and rejected for exactly those reasons. If you block the script,
+    everything on the site still works.</p>
     <p><b>Marking results are stored.</b> When a public repository is marked we keep the score, the
     category breakdown, and basic repository metadata, so the class list and the per-repository pages
     work. All of it is derived from information GitHub already publishes.</p>
