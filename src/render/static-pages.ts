@@ -131,6 +131,13 @@ ${
       never pushed anywhere.</p>
     <p style="color:var(--ink-2);font-size:16.5px">It grades what git tracks, so a local run and this
       site agree on the same repository.</p>
+    <p style="color:var(--ink-2);font-size:16.5px"><b style="color:var(--ink)">Do not take our word for
+      it.</b> The published binary imports three things: <code>fs</code>, <code>path</code>, and
+      <code>child_process</code>, the last only to ask git which files it tracks. It contains no
+      <code>fetch</code>, no http client, and no sockets. It cannot send your code anywhere because
+      there is nothing in it that could. Run it with your network off and see.</p>
+    <p style="margin-top:16px"><a href="https://www.npmjs.com/package/agentreadme">The package on npm</a>
+      · <a href="https://github.com/dejan23/agentreadme/blob/main/src/local/cli.ts">read the CLI source</a></p>
   </div>
   <div>
     <div class="term">
