@@ -159,3 +159,33 @@ export async function languages(db: D1Database): Promise<Array<{ language: strin
     .all<{ language: string; n: number }>();
   return results ?? [];
 }
+
+/**
+ * Median score per language, for the homepage chart. SQLite has no median, so
+ * take the middle row(s) per partition with a window function and average them,
+ * which handles both odd and even counts.
+ */
+export async function languageMedians(
+  db: D1Database,
+  minSample = 15,
+  limit = 10,
+): Promise<Array<[string, number]>> {
+  const { results } = await db
+    .prepare(
+      `SELECT language, CAST(ROUND(AVG(score)) AS INTEGER) AS m, MAX(n) AS cnt FROM (
+         SELECT language, score,
+                ROW_NUMBER() OVER (PARTITION BY language ORDER BY score) AS rn,
+                COUNT(*)     OVER (PARTITION BY language)                AS n
+         FROM reports
+         WHERE stars >= ? AND is_software = 1 AND language IS NOT NULL
+       )
+       WHERE rn IN ((n + 1) / 2, (n + 2) / 2)
+       GROUP BY language
+       HAVING cnt >= ?
+       ORDER BY m DESC
+       LIMIT ?`,
+    )
+    .bind(LEADERBOARD_MIN_STARS, minSample, limit)
+    .all<{ language: string; m: number }>();
+  return (results ?? []).map((r) => [r.language, r.m] as [string, number]);
+}

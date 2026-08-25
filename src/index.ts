@@ -5,7 +5,7 @@ import { errorBadge, gradeBadge } from "./render/badge";
 import { errorPage, reportPage } from "./render/page";
 import { aboutPage, agentsMdPage, homePage, notFoundPage } from "./render/static-pages";
 import { leaderboardPage } from "./render/leaderboard";
-import { type Sort, languages, leaderboard, leaderboardStats, saveReport } from "./db";
+import { type Sort, languageMedians, languages, leaderboard, leaderboardStats, saveReport } from "./db";
 
 export interface Env {
   GITHUB_TOKEN?: string;
@@ -67,13 +67,15 @@ app.get("/", async (c) => {
   // sample so the page is never empty on a cold database.
   let recent: Awaited<ReturnType<typeof leaderboard>> | undefined;
   let stats: Awaited<ReturnType<typeof leaderboardStats>> | undefined;
+  let langs: Awaited<ReturnType<typeof languageMedians>> | undefined;
   if (c.env.DB) {
-    [recent, stats] = await Promise.all([
-      leaderboard(c.env.DB, { sort: "popular", limit: 7 }).catch(() => undefined),
+    [recent, stats, langs] = await Promise.all([
+      leaderboard(c.env.DB, { sort: "popular", limit: 8 }).catch(() => undefined),
       leaderboardStats(c.env.DB).catch(() => undefined),
+      languageMedians(c.env.DB).catch(() => undefined),
     ]);
   }
-  return c.html(homePage(recent, stats), 200, { "Cache-Control": "public, max-age=300" });
+  return c.html(homePage(recent, stats, langs), 200, { "Cache-Control": "public, max-age=300" });
 });
 app.get("/about", (c) => c.html(aboutPage()));
 
@@ -96,7 +98,7 @@ app.get("/what-is-agents-md", (c) => c.html(agentsMdPage()));
 
 app.get("/favicon.svg", (c) =>
   c.body(
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="#f8f4ea"/><rect x="4.5" y="4.5" width="55" height="55" fill="none" stroke="#221e18" stroke-width="3"/><text x="32" y="45" font-family="Georgia,serif" font-size="34" font-weight="600" fill="#ab2a1e" text-anchor="middle">A</text></svg>`,
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="#0A0A0A"/><rect x="10" y="14" width="30" height="7" fill="#fff"/><rect x="10" y="28" width="44" height="7" fill="#fff"/><rect x="10" y="42" width="18" height="7" fill="#FF3D00"/></svg>`,
     200,
     SVG,
   ),
