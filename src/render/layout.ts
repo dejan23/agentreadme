@@ -1,12 +1,19 @@
 export const SITE = "agentreadme.com";
 
 /**
- * Cloudflare Web Analytics site token. Not a secret: it identifies the site,
- * not a person. Empty string means no script is served at all, which is the
- * state the privacy page describes when it is empty.
+ * Deliberately empty, and it should stay that way.
  *
- * Chosen over Google Analytics deliberately. It sets no cookies, identifies
- * nobody, and needs no consent banner, which keeps the privacy page true.
+ * Cloudflare Web Analytics runs on this zone in automatic mode, so Cloudflare
+ * injects the beacon into HTML responses itself. Setting a token here would
+ * put a second beacon on every page and count every visit twice.
+ *
+ * Only fill this in if automatic injection is turned off in the dashboard.
+ * Verify with: load a page in a real browser and count the scripts pointing at
+ * cloudflareinsights. There must be exactly one. Curl alone will show none,
+ * because injection only happens for requests that look like a browser.
+ *
+ * Web Analytics rather than Google Analytics on purpose: no cookies, nobody
+ * identified, no consent banner, which is what keeps /privacy true.
  */
 const ANALYTICS_TOKEN = "";
 
