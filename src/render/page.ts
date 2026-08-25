@@ -79,7 +79,19 @@ export function reportPage(r: Report, related: Row[] = []): string {
   const bars = r.categories
     .map((c, i) => {
       const pct = c.max ? Math.round((c.score / c.max) * 100) : 0;
-      return barRow(c.label, pct, `${c.score}/${c.max}`, pct < 55, i);
+      // What the category measures, plus what this repo actually lost, so the
+      // tooltip says something specific rather than repeating the label.
+      const missed = c.checks.filter((x) => !x.na && x.score < x.max);
+      const lost = missed.length
+        ? ` <b>Losing marks on ${missed
+            .slice(0, 2)
+            .map((x) => x.label.toLowerCase())
+            .join(" and ")}.</b>`
+        : " <b>Full marks.</b>";
+      return barRow(c.label, pct, `${c.score}/${c.max}`, pct < 55, i, {
+        tip: `${esc(c.blurb)}${lost}`,
+        href: `#${c.id}`,
+      });
     })
     .join("");
 

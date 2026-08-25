@@ -55,7 +55,20 @@ p{margin:0 0 1em}
 .search button:hover{background:var(--acc)}
 
 /* bars */
-.bar{display:grid;grid-template-columns:128px 1fr 34px;gap:12px;align-items:center;margin-bottom:10px}
+.bar{display:grid;grid-template-columns:128px 1fr 34px;gap:12px;align-items:center;margin-bottom:10px;
+  position:relative}
+/* A bar is a number with no meaning attached, so it explains itself on hover
+   and links to its own detail on tap, since a phone has no hover. */
+a.bar{text-decoration:none;color:inherit;padding:2px 0;margin-bottom:8px}
+a.bar:hover .n,a.bar:focus-visible .n{color:var(--ink)}
+a.bar:hover .t,a.bar:focus-visible .t{outline:1px solid var(--rule);outline-offset:2px}
+a.bar:focus-visible{outline:2px solid var(--acc);outline-offset:3px}
+.tip{position:absolute;left:0;right:0;bottom:calc(100% + 8px);z-index:5;
+  background:var(--ink);color:#fff;padding:11px 13px;font-size:14px;line-height:1.4;
+  opacity:0;visibility:hidden;transition:opacity .12s ease-out;pointer-events:none}
+.tip b{color:var(--acc);font-weight:600}
+a.bar:hover .tip,a.bar:focus-visible .tip{opacity:1;visibility:visible}
+@media (hover:none){ .tip{display:none} }
 .bar .n{font-size:13.5px;font-weight:500;color:var(--ink-2)}
 .bar .t{background:var(--track);height:26px;position:relative}
 .bar .t i{position:absolute;inset:0 auto 0 0;background:var(--ink)}
@@ -274,12 +287,24 @@ export function attr(s: string): string {
   return esc(s).replace(/"/g, "&quot;");
 }
 
-/** Shared bar row, used by the homepage chart and the leaderboard. */
-export function barRow(label: string, pct: number, value: string, hot = false, index = 0): string {
+/**
+ * Shared bar row. Pass `tip` and `href` to make it explain itself on hover and
+ * jump to its own detail on tap.
+ */
+export function barRow(
+  label: string,
+  pct: number,
+  value: string,
+  hot = false,
+  index = 0,
+  opts: { tip?: string; href?: string } = {},
+): string {
   const w = Math.max(0, Math.min(100, pct));
-  return `<div class="bar${hot ? " hot" : ""}">
-  <span class="n">${esc(label)}</span>
+  const inner = `<span class="n">${esc(label)}</span>
   <span class="t"><i style="width:${w}%;animation-delay:${index * 55}ms"></i></span>
-  <span class="v">${esc(value)}</span>
-</div>`;
+  <span class="v">${esc(value)}</span>${opts.tip ? `<span class="tip">${opts.tip}</span>` : ""}`;
+
+  return opts.href
+    ? `<a class="bar${hot ? " hot" : ""}" href="${attr(opts.href)}">${inner}</a>`
+    : `<div class="bar${hot ? " hot" : ""}">${inner}</div>`;
 }
