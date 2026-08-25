@@ -87,7 +87,7 @@ async function cached(
   const res = await build();
   if (ttl > 0 && res.status === 200) {
     const copy = res.clone();
-    copy.headers.set("Cache-Control", `public, max-age=${ttl}, s-maxage=${ttl}`);
+    copy.headers.set("Cache-Control", `public, max-age=${Math.min(ttl, 300)}, s-maxage=${ttl}`);
     const store = new Response(copy.body, { status: 200, headers: copy.headers });
     await cache.put(key, store.clone());
     return store;
@@ -161,7 +161,9 @@ app.get("/", async (c) => {
       languageMedians(c.env.DB).catch(() => undefined),
     ]);
   }
-  return c.html(homePage(recent, stats, langs), 200, { "Cache-Control": "public, max-age=300" });
+  return c.html(homePage(recent, stats, langs), 200, {
+    "Cache-Control": "public, max-age=120, s-maxage=900",
+  });
 });
 app.get("/about", (c) => c.html(aboutPage()));
 
@@ -177,7 +179,7 @@ app.get("/leaderboard", async (c) => {
     languages(c.env.DB),
   ]);
   return c.html(leaderboardPage({ rows, stats, sort, language, langs }), 200, {
-    "Cache-Control": "public, max-age=900, s-maxage=900",
+    "Cache-Control": "public, max-age=120, s-maxage=900",
   });
 });
 app.get("/what-is-agents-md", (c) => c.html(agentsMdPage()));

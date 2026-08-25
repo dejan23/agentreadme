@@ -13,7 +13,7 @@ const CSS = `
   --sans:"Archivo",ui-sans-serif,system-ui,sans-serif;
   --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
 }
-html{-webkit-text-size-adjust:100%}
+html{-webkit-text-size-adjust:100%;overflow-x:hidden}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
   font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
 a{color:inherit;text-decoration:underline;text-decoration-color:var(--rule);text-underline-offset:3px}
@@ -167,7 +167,10 @@ footer p{margin:0 0 .6em;max-width:74ch;margin-left:auto;margin-right:auto}
   *,*::before,*::after{animation:none!important;transition:none!important}
 }
 @media (max-width:900px){
-  .hero,.two{grid-template-columns:1fr;gap:34px}
+  /* minmax(0,...) not 1fr: a bare 1fr will not shrink below the item's
+     min-content, and the terminal block's unbreakable lines pushed the grid
+     30px past the screen edge, giving the whole page a sideways scroll. */
+  .hero,.two{grid-template-columns:minmax(0,1fr);gap:34px}
 }
 @media (max-width:640px){
   .wrap{padding:0 20px}
@@ -175,7 +178,8 @@ footer p{margin:0 0 .6em;max-width:74ch;margin-left:auto;margin-right:auto}
   .top nav{gap:14px;width:100%;margin-left:0}
   section{padding:40px 0}
   .search{flex-direction:column}
-  .band{padding:38px 0}
+  /* Keep the full-bleed padding, or the band's text runs into the screen edge. */
+  .band{padding-top:34px;padding-bottom:32px}
 }
 `;
 
@@ -241,16 +245,20 @@ ${announce ? `<div class="announce">${announce}</div>` : ""}
 const COUNT_JS = `(function(){
 if(!window.IntersectionObserver||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
 var els=[].slice.call(document.querySelectorAll('[data-count]'));if(!els.length)return;
+function done(el){el.textContent=(el.getAttribute('data-count')||'0')+(el.getAttribute('data-suffix')||'');el.dataset.ran='1'}
 els.forEach(function(el){el.textContent='0'+(el.getAttribute('data-suffix')||'');});
 var io=new IntersectionObserver(function(es){es.forEach(function(e){
 if(!e.isIntersecting)return;io.unobserve(e.target);
 var el=e.target,to=parseFloat(el.getAttribute('data-count'))||0,
-sf=el.getAttribute('data-suffix')||'',t0=0;
+sf=el.getAttribute('data-suffix')||'',t0=0;el.dataset.ran='1';
 function step(t){if(!t0)t0=t;var p=Math.min(1,(t-t0)/900);
 el.textContent=Math.round(to*(1-Math.pow(1-p,3)))+sf;
 if(p<1)requestAnimationFrame(step);}
 requestAnimationFrame(step);});},{threshold:.35});
 els.forEach(function(el){io.observe(el);});
+// Safety net. If the observer never fires for a figure, showing a permanent 0
+// is far worse than skipping the animation, so put the real number back.
+setTimeout(function(){els.forEach(function(el){if(!el.dataset.ran)done(el)})},4000);
 })();`;
 
 /** A figure that counts up on first view, correct in the HTML either way. */
