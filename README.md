@@ -7,8 +7,8 @@ Grades any public GitHub repository on how well AI coding agents can work in it.
 
 **[agentreadme.com](https://agentreadme.com)**
 
-The badge above is this repository's own mark, re-checked on every page load.
-We would have no business scoring anyone else otherwise.
+The badge above is this repository's own mark, from the same rubric everyone
+else gets. We would have no business scoring anyone else otherwise.
 
 When Claude Code or Cursor flails in a codebase, everyone blames the model.
 Usually it is the repository. There is no test command the agent can find, or
@@ -63,7 +63,7 @@ Java 44, C++ 42, C 38.
 [![agent ready](https://agentreadme.com/badge/OWNER/REPO.svg)](https://agentreadme.com/OWNER/REPO)
 ```
 
-It re-marks on every request, so it stays honest as the repository changes.
+It re-checks daily. Add `?refresh=1` to any report URL to force a re-mark.
 
 ## How it works
 

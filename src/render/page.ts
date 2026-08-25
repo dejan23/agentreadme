@@ -160,8 +160,8 @@ ${
 <section class="two">
   <div>
     <h2>Show the <i>mark</i></h2>
-    <p class="lede" style="margin:14px 0 18px">The badge re-marks on every request, so it stays honest as the
-      repository changes.</p>
+    <p class="lede" style="margin:14px 0 18px">The badge re-checks daily, so it keeps up as the repository
+      changes. Use <a href="/${esc(slug)}?refresh=1">mark again</a> to force it now.</p>
     <p><img src="/badge/${esc(slug)}.svg" alt="agent ready ${r.score} out of 100" width="150" height="20"></p>
   </div>
   <div><pre><code>${esc(md)}</code></pre></div>

@@ -79,11 +79,13 @@ async function cached(
 ): Promise<Response> {
   const cache = caches.default;
   const key = new Request(new URL(c.req.raw.url).toString(), { method: "GET" });
-  const hit = await cache.match(key);
-  if (hit) return hit;
+  if (ttl > 0) {
+    const hit = await cache.match(key);
+    if (hit) return hit;
+  }
 
   const res = await build();
-  if (res.status === 200) {
+  if (ttl > 0 && res.status === 200) {
     const copy = res.clone();
     copy.headers.set("Cache-Control", `public, max-age=${ttl}, s-maxage=${ttl}`);
     const store = new Response(copy.body, { status: 200, headers: copy.headers });
@@ -112,6 +114,20 @@ const FRESH_MS = 24 * 60 * 60 * 1000;
  * and badge traffic arrives through GitHub's image proxy from a small set of
  * addresses, so limiting those by IP would break badges for everyone at once.
  */
+/** ?refresh=1 forces a re-mark. Still rate limited, so it is not a free lever. */
+function wantsRefresh(url: string): boolean {
+  return new URL(url).searchParams.get("refresh") === "1";
+}
+
+/** Drops the cached copy of a URL so a refresh is not undone by the edge. */
+async function dropCached(url: string): Promise<void> {
+  try {
+    await caches.default.delete(new Request(url, { method: "GET" }));
+  } catch {
+    /* best effort */
+  }
+}
+
 async function mayGradeLive(c: {
   env: Env;
   req: { header(name: string): string | undefined };
@@ -288,12 +304,13 @@ app.get("/badge/:owner/:repo", async (c) => {
   const parsed = parseRepo(`${c.req.param("owner")}/${repoParam}`);
   if (!parsed) return c.body(errorBadge("invalid"), 200, SVG);
 
-  return cached(c, 1800, async () => {
+  const refreshBadge = wantsRefresh(c.req.url);
+  return cached(c, refreshBadge ? 0 : 1800, async () => {
     const db = c.env.DB;
     // Badges are the highest-volume endpoint once READMEs adopt them, so they
     // lean hardest on the stored copy.
     const stored = db ? await storedReport(db, parsed.owner, parsed.repo).catch(() => null) : null;
-    if (stored && stored.ageMs < FRESH_MS) {
+    if (!refreshBadge && stored && stored.ageMs < FRESH_MS) {
       return new Response(gradeBadge(stored.report.score, stored.report.grade), { status: 200, headers: SVG });
     }
     if (!(await mayGradeLive(c))) return new Response(errorBadge("rate limited"), { status: 200, headers: SVG });
@@ -324,7 +341,14 @@ app.get("/:owner/:repo", async (c) => {
         })
       : new Response(reportPage(report, rel), { status: 200, headers: HTML });
 
-  return cached(c, 21600, async () => {
+  const refresh = wantsRefresh(c.req.url);
+  if (refresh) {
+    const clean = new URL(c.req.url);
+    clean.search = "";
+    await dropCached(clean.toString());
+  }
+
+  return cached(c, refresh ? 0 : 21600, async () => {
     const db = c.env.DB;
 
     const related = async (r: Report): Promise<Row[]> =>
@@ -332,7 +356,9 @@ app.get("/:owner/:repo", async (c) => {
 
     // 1. A recent stored report costs no GitHub call at all.
     const stored = db ? await storedReport(db, parsed.owner, parsed.repo).catch(() => null) : null;
-    if (stored && stored.ageMs < FRESH_MS) return render(stored.report, await related(stored.report));
+    if (!refresh && stored && stored.ageMs < FRESH_MS) {
+      return render(stored.report, await related(stored.report));
+    }
 
     // 2. Otherwise mark it live, if this caller has budget left.
     if (!(await mayGradeLive(c))) {
