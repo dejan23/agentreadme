@@ -1,0 +1,27 @@
+{
+  "name": "agentreadme",
+  "owner": {
+    "name": "Dejan Stojadinovic",
+    "url": "https://agentreadme.com"
+  },
+  "plugins": [
+    {
+      "name": "agentreadme",
+      "source": "./",
+      "description": "Check whether the repo you are in is set up for an AI agent to work in it, then fix what is missing. Runs locally, so it works on private code.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Dejan Stojadinovic"
+      },
+      "homepage": "https://agentreadme.com",
+      "license": "MIT",
+      "keywords": [
+        "agents-md",
+        "claude-code",
+        "code-quality",
+        "onboarding",
+        "developer-tools"
+      ]
+    }
+  ]
+}

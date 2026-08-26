@@ -60,6 +60,15 @@ costing you marks you cannot earn.
 
 Let the agent check the repo it is working in, and fix what it finds:
 
+As a plugin:
+
+```
+/plugin marketplace add dejan23/agentreadme
+/plugin install agentreadme
+```
+
+Or drop the file in by hand:
+
 ```
 mkdir -p ~/.claude/skills/agentreadme
 curl -o ~/.claude/skills/agentreadme/SKILL.md \
@@ -67,6 +76,13 @@ curl -o ~/.claude/skills/agentreadme/SKILL.md \
 ```
 
 Then ask it to check the repository, or say `/agentreadme`.
+
+Agents that can reach the web need none of this. Any public repository is
+readable with one request, and `agentreadme.com/llms.txt` describes the rest:
+
+```
+curl agentreadme.com/OWNER/REPO.txt
+```
 
 The skill is the part a CLI cannot do. It measures, reports the two or three
 things costing the most, offers to fix them, and re-checks. Drafting the
