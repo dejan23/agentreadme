@@ -121,7 +121,7 @@ ${
     : ""
 }
 
-<section class="two">
+<section class="two" id="private">
   <div>
     <h2>Private repo? Run it <i>locally</i>.</h2>
     <p class="lede" style="margin:16px 0 18px">This site cannot read private repositories and never

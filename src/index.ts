@@ -522,7 +522,11 @@ app.get("/:owner/:repo", async (c) => {
       const msg = err?.message ?? "Something went wrong marking that repository.";
       const status = err?.status === 404 ? 404 : err?.status === 429 ? 429 : 500;
       if (wantsText) {
-        return new Response(`${msg}\n`, { status, headers: { "Content-Type": "text/plain; charset=utf-8" } });
+        const body =
+          status === 404
+            ? `${msg}\n\nPrivate repositories cannot be marked here, by design: this service\ncan only read public code. Run the same checks locally instead, with\nnothing uploaded and no token:\n\n  npx agentreadme\n\nMore: https://agentreadme.com/#private\n`
+            : `${msg}\n`;
+        return new Response(body, { status, headers: { "Content-Type": "text/plain; charset=utf-8" } });
       }
       return new Response(errorPage(msg, status, `${parsed.owner}/${parsed.repo}`), {
         status,

@@ -253,6 +253,12 @@ ${r.truncatedTree ? `<p class="note">This repository is large enough that GitHub
 }
 
 export function errorPage(message: string, status: number, tried?: string): string {
+  // A 404 here usually means the repository is private, because GitHub returns
+  // the same status for both rather than confirm a private repo exists. That
+  // person is the most motivated visitor this site gets, so the page offers the
+  // way forward instead of turning them away.
+  const maybePrivate = status === 404;
+
   return layout({
     title: `Couldn't mark that repository · ${SITE}`,
     description: message,
@@ -260,9 +266,42 @@ export function errorPage(message: string, status: number, tried?: string): stri
     body: `<section style="padding-top:60px">
   <p class="kicker">Not marked</p>
   <h1>${esc(message)}</h1>
-  <p class="lede" style="margin:20px 0 24px">Only public repositories can be marked.</p>
+  <p class="lede" style="margin:20px 0 24px">${
+    maybePrivate
+      ? "This site can only read public code, so a private repository looks exactly like one that does not exist."
+      : "Only public repositories can be marked."
+  }</p>
   ${searchForm(tried ?? "")}
   <p class="note">Try <a href="/openai/codex">openai/codex</a> or <a href="/honojs/hono">honojs/hono</a>.</p>
-</section>`,
+</section>
+
+${
+  maybePrivate
+    ? `<section class="two" style="border-top:1px solid var(--rule)">
+  <div>
+    <h2>Private? Run it <i>locally</i>.</h2>
+    <p class="lede" style="margin:16px 0 18px">The same rubric, on your machine. Nothing is uploaded,
+      no account, no token, and no network call at all.</p>
+    <p style="color:var(--ink-2);font-size:16.5px">It grades what git tracks, so the result matches
+      what this site would have given you. <code>--write-agents</code> drafts the AGENTS.md too.</p>
+    <p style="margin-top:16px"><a href="https://www.npmjs.com/package/agentreadme">The package on npm</a>
+      · <a href="/#private">how it works</a></p>
+  </div>
+  <div>
+    <div class="term">
+      <div class="bar">
+        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <span class="name">bash — ~/${esc((tried ?? "your-repo").split("/").pop() ?? "your-repo")}</span>
+      </div>
+      <div class="body"><pre><span class="prompt">$</span> <span class="cmd">npx agentreadme</span>
+
+<span class="dim">the same five categories, in your terminal</span>
+
+<span class="prompt">$</span> <span class="cursor"></span></pre></div>
+    </div>
+  </div>
+</section>`
+    : ""
+}`,
   });
 }
