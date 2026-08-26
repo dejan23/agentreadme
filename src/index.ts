@@ -61,14 +61,45 @@ const RESERVED = new Set([
 const OWNER = /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})$/;
 const REPO = /^(?!\.\.?$)[A-Za-z0-9._-]{1,100}$/;
 
-/** Accepts "owner/repo", a full GitHub URL, or a git remote. */
+/**
+ * Accepts what people actually paste.
+ *
+ * The common case is a URL copied from the browser while looking at a repo,
+ * which carries a branch path and often a query string: .../tree/main,
+ * .../blob/main/README.md, ?tab=readme-ov-file. Rejecting those rejected the
+ * single most likely way anyone arrives here.
+ *
+ * A host is what makes extra path segments safe to ignore. A bare "a/b/c/d"
+ * with no host is still refused, because that is garbage rather than a URL.
+ */
 export function parseRepo(input: string): { owner: string; repo: string } | null {
   let s = input.trim();
   if (!s) return null;
-  s = s.replace(/^git@github\.com:/, "").replace(/^https?:\/\/(www\.)?github\.com\//i, "");
-  s = s.replace(/\.git$/, "").replace(/^\/+|\/+$/g, "");
-  const parts = s.split("/");
-  if (parts.length !== 2) return null;
+
+  // Strip a query string or fragment first: ?tab=readme-ov-file, #readme.
+  s = s.split("?")[0].split("#")[0];
+
+  let hadHost = false;
+  const ssh = s.match(/^git@github\.com:(.+)$/i);
+  if (ssh) {
+    s = ssh[1];
+    hadHost = true;
+  } else {
+    // With or without a scheme. "github.com/owner/repo" is pasted constantly.
+    const web = s.match(/^(?:https?:\/\/)?(?:www\.)?github\.com\/(.*)$/i);
+    if (web) {
+      s = web[1];
+      hadHost = true;
+    }
+  }
+
+  s = s.replace(/\.git$/i, "").replace(/^\/+|\/+$/g, "");
+  const parts = s.split("/").filter(Boolean);
+
+  // From a URL, everything past owner/repo is a branch or file path.
+  if (parts.length < 2) return null;
+  if (!hadHost && parts.length !== 2) return null;
+
   const [owner, repo] = parts;
   if (!OWNER.test(owner) || !REPO.test(repo)) return null;
   if (RESERVED.has(owner.toLowerCase())) return null;
@@ -177,9 +208,15 @@ app.get("/leaderboard", async (c) => {
   const language = c.req.query("lang") || undefined;
 
   const [rows, stats, langs] = await Promise.all([
-    leaderboard(c.env.DB, { sort, language, limit: 100 }),
-    leaderboardStats(c.env.DB),
-    languages(c.env.DB),
+    leaderboard(c.env.DB, { sort, language, limit: 100 }).catch(() => []),
+    leaderboardStats(c.env.DB).catch(() => ({
+      total: 0,
+      median: 0,
+      withAgentsMd: 0,
+      withAnyAgentDoc: 0,
+      withTestCommand: 0,
+    })),
+    languages(c.env.DB).catch(() => []),
   ]);
   return c.html(leaderboardPage({ rows, stats, sort, language, langs }), 200, {
     "Cache-Control": "public, max-age=120, s-maxage=900",

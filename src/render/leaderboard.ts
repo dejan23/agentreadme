@@ -206,7 +206,11 @@ export function leaderboardPage(opts: {
       <th style="text-align:right">Stars</th><th style="text-align:right">Mark</th><th></th></tr></thead>
     <tbody>${rows.map(row).join("")}</tbody>
   </table></div>`
-      : `<p class="lede">Nothing marked yet.${language ? " Try another language." : ""}</p>`
+      : `<p class="lede">${
+          stats.total === 0
+            ? "The class list is briefly unavailable. Marking a repository still works, so paste one below."
+            : `Nothing marked yet.${language ? " Try another language." : ""}`
+        }</p>`
   }
 </div></section>
 

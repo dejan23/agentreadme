@@ -15,12 +15,25 @@ describe("parseRepo", () => {
     expect(parseRepo("  honojs/hono/  ")).toEqual(want);
   });
 
+  it("accepts a URL copied from the browser while looking at a repo", () => {
+    const want = { owner: "honojs", repo: "hono" };
+    // The single most likely way anyone arrives. All of these used to 400.
+    expect(parseRepo("https://github.com/honojs/hono/tree/main")).toEqual(want);
+    expect(parseRepo("https://github.com/honojs/hono/blob/main/README.md")).toEqual(want);
+    expect(parseRepo("https://github.com/honojs/hono?tab=readme-ov-file")).toEqual(want);
+    expect(parseRepo("https://github.com/honojs/hono#readme")).toEqual(want);
+    expect(parseRepo("github.com/honojs/hono")).toEqual(want);
+    expect(parseRepo("www.github.com/honojs/hono")).toEqual(want);
+    expect(parseRepo("https://github.com/honojs/hono/pull/1234")).toEqual(want);
+  });
+
   it("keeps dots inside a repo name", () => {
     expect(parseRepo("expressjs/express.js")).toEqual({ owner: "expressjs", repo: "express.js" });
   });
 
   it("rejects anything that is not a repository", () => {
-    for (const bad of ["", "   ", "honojs", "/hono", "honojs/", "a/b/c/d"]) {
+    // Extra segments are only forgiven when a github.com host made them a path.
+    for (const bad of ["", "   ", "honojs", "/hono", "honojs/", "a/b/c/d", "a/b/c"]) {
       expect(parseRepo(bad), bad).toBeNull();
     }
   });
