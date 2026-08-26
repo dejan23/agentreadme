@@ -56,6 +56,23 @@ repository. Stars, description, and topics belong to GitHub rather than to a
 checkout, so those checks are marked not applicable off-platform instead of
 costing you marks you cannot earn.
 
+## As a Claude Code skill
+
+Let the agent check the repo it is working in, and fix what it finds:
+
+```
+mkdir -p ~/.claude/skills/agentreadme
+curl -o ~/.claude/skills/agentreadme/SKILL.md \
+  https://raw.githubusercontent.com/dejan23/agentreadme/main/skill/agentreadme/SKILL.md
+```
+
+Then ask it to check the repository, or say `/agentreadme`.
+
+The skill is the part a CLI cannot do. It measures, reports the two or three
+things costing the most, offers to fix them, and re-checks. Drafting the
+AGENTS.md is only half the job: the draft leaves a `TODO` wherever it could not
+determine something, and an agent that has read your codebase can fill those in.
+
 ## What it measures
 
 | Category | Marks | The question |

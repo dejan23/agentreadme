@@ -1,0 +1,10 @@
+{
+  "name": "agentreadme",
+  "version": "0.1.0",
+  "description": "Check whether the repo you are in is set up for an AI agent to work in it, then fix what is missing. Runs locally, so it works on private code.",
+  "author": { "name": "Dejan Stojadinovic", "url": "https://x.com/dejansto_" },
+  "homepage": "https://agentreadme.com",
+  "repository": "https://github.com/dejan23/agentreadme",
+  "license": "MIT",
+  "keywords": ["agents-md", "claude-code", "code-quality", "developer-tools", "onboarding"]
+}
