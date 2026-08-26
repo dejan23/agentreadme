@@ -5,6 +5,7 @@ import type { Report } from "./grade/types";
 import { errorBadge, gradeBadge } from "./render/badge";
 import { errorPage, reportPage } from "./render/page";
 import { reportText } from "./render/text";
+import { mcpHandler } from "./mcp";
 import { aboutPage, agentsMdPage, homePage, notFoundPage } from "./render/static-pages";
 import { leaderboardPage } from "./render/leaderboard";
 import { feedbackPage } from "./render/feedback";
@@ -52,7 +53,7 @@ app.get("/version", (c) =>
 const RESERVED = new Set([
   "about", "leaderboard", "analyze", "badge", "og", "favicon.svg", "robots.txt",
   "sitemap.xml", "what-is-agents-md", "api", "static", "_", "assets", "privacy", "terms", "version", "og",
-  "draft", "findings", "feedback", "llms.txt", "guides",
+  "draft", "findings", "feedback", "llms.txt", "guides", "mcp",
 ]);
 
 // GitHub's own rules: an owner is alphanumeric with single hyphens, a repo may
@@ -223,6 +224,9 @@ app.get("/leaderboard", async (c) => {
   });
 });
 app.get("/what-is-agents-md", (c) => c.html(agentsMdPage()));
+// MCP, so an agent in Cursor or Claude Desktop can use this without a browser.
+app.all("/mcp", (c) => mcpHandler(c.req.raw, c.env, c.executionCtx));
+
 app.get("/findings", (c) => c.html(findingsPage()));
 app.get("/feedback", (c) => c.html(feedbackPage()));
 app.get("/guides", (c) => c.html(guidesIndex()));
@@ -400,6 +404,13 @@ project are removed from the total rather than scored zero.
 - https://agentreadme.com/OWNER/REPO.txt — any repo's report as plain text
 - https://agentreadme.com/draft/OWNER/REPO.md — a drafted AGENTS.md
 - https://agentreadme.com/badge/OWNER/REPO.svg — the score as an SVG badge
+
+## MCP
+
+https://agentreadme.com/mcp speaks MCP over streamable HTTP. No key, nothing to
+install. Tools: grade_repository, draft_agents_md, agent_readiness_findings.
+
+    claude mcp add --transport http agentreadme https://agentreadme.com/mcp
 
 ## Pages
 

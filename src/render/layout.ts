@@ -106,6 +106,16 @@ a.bar:hover .tip,a.bar:focus-visible .tip{opacity:1;visibility:visible}
 .panel .foot{font-size:12.5px;color:var(--ink-3);margin:14px 0 0;
   border-top:1px solid var(--rule);padding-top:11px}
 
+/* ways: the three places this runs, side by side */
+.ways{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;margin-top:34px}
+.ways .panel{display:flex;flex-direction:column;padding:24px 24px 22px}
+.ways .panel h3{font-size:21px;font-weight:700;letter-spacing:-.02em;margin:0 0 9px}
+.ways .panel p{font-size:15.5px;color:var(--ink-2);margin:0 0 18px;flex:1;line-height:1.5}
+/* These sit in narrow columns, so the commands wrap rather than scroll out of
+   sight, and the right padding leaves the copy button somewhere to land. */
+.ways .panel pre{padding:13px 52px 14px 15px;font-size:12.5px;line-height:1.65;
+  white-space:pre-wrap;overflow-wrap:anywhere}
+
 /* full-bleed dark band */
 .band{background:var(--ink);color:#fff;padding:52px 0;
   margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);
@@ -215,6 +225,7 @@ footer p{margin:0 0 .6em;max-width:74ch;margin-left:auto;margin-right:auto}
      min-content, and the terminal block's unbreakable lines pushed the grid
      30px past the screen edge, giving the whole page a sideways scroll. */
   .hero,.two{grid-template-columns:minmax(0,1fr);gap:34px}
+  .ways{grid-template-columns:minmax(0,1fr);gap:18px}
 }
 @media (max-width:640px){
   .wrap{padding:0 20px}

@@ -89,6 +89,39 @@ things costing the most, offers to fix them, and re-checks. Drafting the
 AGENTS.md is only half the job: the draft leaves a `TODO` wherever it could not
 determine something, and an agent that has read your codebase can fill those in.
 
+## As an MCP server
+
+For agents outside Claude Code, or anywhere a skill file is not an option, the
+same engine is a remote MCP server:
+
+```
+https://agentreadme.com/mcp
+```
+
+Streamable HTTP, no key, nothing to install. Claude Code:
+
+```
+claude mcp add --transport http agentreadme https://agentreadme.com/mcp
+```
+
+Cursor, Claude Desktop, and anything else that reads a config file:
+
+```json
+{
+  "mcpServers": {
+    "agentreadme": { "url": "https://agentreadme.com/mcp" }
+  }
+}
+```
+
+Three tools: `grade_repository` marks a public repo and names the fixes,
+`draft_agents_md` returns a ready-to-save AGENTS.md built from what the repo
+actually contains, and `agent_readiness_findings` gives the study numbers so a
+score has something to sit against.
+
+It reads public repositories only, which is the same promise the website makes.
+Private code stays with `npx agentreadme`.
+
 ## What it measures
 
 | Category | Marks | The question |

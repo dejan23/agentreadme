@@ -166,6 +166,41 @@ ${
   </div>
 </section>
 
+<section id="surfaces">
+  <span class="kicker">Four ways in</span>
+  <h2>Wherever your agent <i>already works</i>.</h2>
+  <p class="lede" style="margin-top:16px">The command above handles private code on your machine.
+    Here is everything else, all running the same rubric.</p>
+
+  <div class="ways">
+    <div class="panel">
+      <h3>A URL</h3>
+      <p>Put any owner and repo after the domain. Add <code>.txt</code> and you get the report as
+        plain text, which is what an agent should read.</p>
+      <div class="copywrap"><pre><span class="prompt">$</span> <span class="cmd">curl agentreadme.com/honojs/hono.txt</span></pre></div>
+    </div>
+
+    <div class="panel">
+      <h3>A Claude Code skill</h3>
+      <p>The agent marks the repo it is working in, says what is costing the most, then offers to
+        fix it and check again.</p>
+      <div class="copywrap"><pre><span class="prompt">$</span> <span class="cmd">/plugin marketplace add dejan23/agentreadme</span>
+<span class="prompt">$</span> <span class="cmd">/plugin install agentreadme</span></pre></div>
+    </div>
+
+    <div class="panel">
+      <h3>An MCP server</h3>
+      <p>For Cursor, Claude Desktop, or anything else that speaks MCP. No key, nothing installed,
+        streamable HTTP at <code>/mcp</code>.</p>
+      <div class="copywrap"><pre><span class="prompt">$</span> <span class="cmd">claude mcp add --transport http agentreadme https://agentreadme.com/mcp</span></pre></div>
+    </div>
+  </div>
+
+  <p class="note" style="margin-top:20px">The server exposes three tools: mark a repository, draft
+    its AGENTS.md, and pull the study numbers so a score has something to sit against. It reads
+    public repositories only, same as this site.</p>
+</section>
+
 <section class="center">
   <h2>Try it on the repo you have <i>open right now</i>.</h2>
   <p class="lede">Two API calls. Nothing cloned, nothing executed, no account.
