@@ -72,7 +72,7 @@ Or drop the file in by hand:
 ```
 mkdir -p ~/.claude/skills/agentreadme
 curl -o ~/.claude/skills/agentreadme/SKILL.md \
-  https://raw.githubusercontent.com/dejan23/agentreadme/main/skill/agentreadme/SKILL.md
+  https://raw.githubusercontent.com/dejan23/agentreadme/main/skills/agentreadme/SKILL.md
 ```
 
 Then ask it to check the repository, or say `/agentreadme`.

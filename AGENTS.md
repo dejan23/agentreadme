@@ -41,7 +41,7 @@ src/grade/     the rubric. rules-*.ts hold the checks, detect.ts the signals
 src/render/    server-rendered HTML. layout.ts owns the design system
 src/github.ts  GitHub client. Two API calls per repo, contents come from the CDN
 src/local/     the npx CLI: a filesystem snapshot plus a terminal renderer
-skill/         the Claude Code skill, which wraps the CLI and fixes what it finds
+skills/        the Claude Code skill, which wraps the CLI and fixes what it finds
 src/db.ts      D1 queries and the row shape
 scripts/       probe (one repo) and seed (the crawl)
 migrations/    D1 schema
