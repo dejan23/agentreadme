@@ -117,6 +117,11 @@ a.bar:hover .tip,a.bar:focus-visible .tip{opacity:1;visibility:visible}
   white-space:pre-wrap;overflow-wrap:anywhere}
 
 /* full-bleed dark band */
+/* The full-bleed bands measure themselves in vw, which counts the scrollbar,
+   so on any browser that still draws a classic one they sat ~8px wider than the
+   page and gave the whole thing a sideways scroll. clip, not hidden: hidden
+   would make body a scroll container and break anchor jumps. */
+body{overflow-x:clip}
 .band{background:var(--ink);color:#fff;padding:52px 0;
   margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);
   padding-left:calc(50vw - 50%);padding-right:calc(50vw - 50%)}
